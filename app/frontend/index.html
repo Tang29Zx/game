@@ -1,0 +1,3319 @@
+﻿<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#13241b">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="&#20116;&#23376;&#26827; AI &#26827;&#38498;">
+  <meta name="format-detection" content="telephone=no">
+  <link rel="manifest" href="./manifest.webmanifest">
+  <link rel="icon" type="image/png" sizes="192x192" href="./icons/icon-192.png">
+  <link rel="shortcut icon" href="./favicon.ico">
+  <link rel="apple-touch-icon" href="./icons/icon-180.png">
+  <title>&#20116;&#23376;&#26827; AI &#26827;&#38498;</title>
+  <style>
+    :root {
+      color-scheme: light;
+      --bg: #13241b;
+      --felt: #1f3a2b;
+      --felt-dark: #0e1b14;
+      --panel: #f6ecd7;
+      --surface: #fff7e9;
+      --surface-strong: #ead6b7;
+      --line: #9b7a52;
+      --text: #2a1b0f;
+      --muted: #735d43;
+      --accent: #9e4f24;
+      --accent-strong: #c7772f;
+      --jade: #2f7a4f;
+      --ink: #111318;
+      --danger: #a33a2c;
+      --success: #2f7a4f;
+      --shadow: 0 8px 24px rgba(24, 18, 10, 0.18);
+    }
+
+    * { box-sizing: border-box; }
+
+    html, body {
+      width: 100%;
+      height: 100%;
+      margin: 0;
+      overflow: hidden;
+      background: var(--bg);
+      color: var(--text);
+      font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      touch-action: none;
+      user-select: none;
+      -webkit-user-select: none;
+      -webkit-touch-callout: none;
+      overscroll-behavior: none;
+    }
+
+    button, select {
+      min-height: 44px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: var(--surface);
+      color: var(--text);
+      font: inherit;
+      padding: 0 10px;
+      touch-action: manipulation;
+    }
+
+    button:active { transform: translateY(1px); }
+    button:disabled, select:disabled {
+      opacity: 0.48;
+      transform: none;
+    }
+
+    button:focus-visible, select:focus-visible {
+      outline: 2px solid var(--accent-strong);
+      outline-offset: 2px;
+    }
+
+    .app {
+      width: 100vw;
+      height: 100vh;
+      height: 100dvh;
+      display: grid;
+      grid-template-rows: auto minmax(0, 1fr) auto;
+      background:
+        radial-gradient(circle at 50% -10%, rgba(207, 166, 89, 0.2), transparent 32%),
+        radial-gradient(circle at 12% 82%, rgba(47, 122, 79, 0.42), transparent 28%),
+        repeating-linear-gradient(38deg, rgba(255, 255, 255, 0.028) 0 1px, transparent 1px 7px),
+        repeating-linear-gradient(128deg, rgba(0, 0, 0, 0.06) 0 1px, transparent 1px 9px),
+        var(--bg);
+    }
+
+    .topbar, .bottombar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      padding: calc(10px + env(safe-area-inset-top)) 12px 10px;
+      border-bottom: 1px solid rgba(155, 122, 82, 0.45);
+      background:
+        linear-gradient(180deg, rgba(255, 250, 236, 0.98), rgba(236, 218, 187, 0.96));
+      backdrop-filter: blur(14px);
+      z-index: 3;
+    }
+
+    .topbar {
+      box-shadow: 0 1px 0 rgba(255, 255, 255, 0.38);
+    }
+
+    .bottombar {
+      padding: 10px 12px calc(10px + env(safe-area-inset-bottom));
+      border-top: 1px solid var(--line);
+      border-bottom: 0;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      min-width: 0;
+      gap: 10px;
+    }
+
+    .mark {
+      width: 28px;
+      height: 28px;
+      flex: 0 0 auto;
+      border-radius: 50%;
+      background:
+        radial-gradient(circle at 34% 30%, #fff6d8 0 11%, transparent 12%),
+        radial-gradient(circle at 50% 52%, #21150c 0 49%, transparent 50%),
+        #c8924a;
+      box-shadow: 0 0 0 2px rgba(158, 79, 36, 0.18);
+    }
+
+    h1 {
+      margin: 0;
+      font-size: 18px;
+      line-height: 1.05;
+      letter-spacing: 0;
+    }
+
+    .status-row {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      min-width: 0;
+      margin-top: 4px;
+    }
+
+    .status-dot {
+      width: 8px;
+      height: 8px;
+      flex: 0 0 auto;
+      border-radius: 999px;
+      background: var(--success);
+      box-shadow: 0 0 0 4px rgba(79, 195, 138, 0.12);
+    }
+
+    .app.is-thinking .status-dot {
+      background: var(--accent-strong);
+      box-shadow: 0 0 0 4px rgba(255, 209, 102, 0.14);
+      animation: pulse 0.9s ease-in-out infinite;
+    }
+
+    .status {
+      max-width: 48vw;
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.2;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .actions {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex: 0 0 auto;
+    }
+
+    #difficultySelect { max-width: 112px; }
+
+    .workspace {
+      position: relative;
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) 0;
+      min-height: 0;
+      overflow: hidden;
+      transition: grid-template-columns 180ms ease;
+    }
+
+    .app.inspector-open .workspace {
+      grid-template-columns: minmax(0, 1fr) minmax(320px, 360px);
+    }
+
+    .panel-toggle {
+      font-weight: 650;
+    }
+
+    .inspector-panel {
+      display: flex;
+      flex-direction: column;
+      min-width: 0;
+      overflow: hidden;
+      border-left: 1px solid rgba(155, 122, 82, 0.35);
+      background:
+        linear-gradient(180deg, rgba(255, 250, 239, 0.97), rgba(235, 215, 182, 0.96));
+      box-shadow: -12px 0 32px rgba(7, 14, 10, 0.22);
+      transform: translateX(100%);
+      transition: transform 180ms ease;
+      z-index: 4;
+    }
+
+    .app.inspector-open .inspector-panel {
+      transform: translateX(0);
+    }
+
+    .inspector-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      padding: 12px;
+      border-bottom: 1px solid rgba(155, 122, 82, 0.38);
+    }
+
+    .inspector-title {
+      min-width: 0;
+    }
+
+    .inspector-title strong {
+      display: block;
+      font-size: 15px;
+      line-height: 1.2;
+    }
+
+    .inspector-title span {
+      display: block;
+      margin-top: 2px;
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.25;
+    }
+
+    .inspector-body {
+      display: flex;
+      flex-direction: column;
+      min-height: 0;
+      overflow: auto;
+      overscroll-behavior: contain;
+      padding: 10px 12px 12px;
+      gap: 10px;
+      -webkit-overflow-scrolling: touch;
+    }
+
+    .modebar {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 6px;
+      padding: 0;
+      z-index: 1;
+    }
+
+    .mode-tab {
+      min-height: 44px;
+      border-color: rgba(155, 122, 82, 0.55);
+      background: rgba(255, 247, 233, 0.72);
+      color: var(--muted);
+      font-size: 14px;
+      font-weight: 650;
+    }
+
+    .mode-tab.active {
+      border-color: rgba(158, 79, 36, 0.55);
+      background: var(--accent);
+      color: #fff8ea;
+      box-shadow: inset 0 -2px 0 rgba(255, 255, 255, 0.18);
+    }
+
+    .board-area {
+      position: relative;
+      display: block;
+      overflow: hidden;
+      min-height: 0;
+      isolation: isolate;
+      background:
+        radial-gradient(ellipse at 50% 42%, rgba(255, 236, 178, 0.13), transparent 38%),
+        linear-gradient(180deg, rgba(255, 255, 255, 0.035), transparent 42%),
+        linear-gradient(115deg, rgba(255, 255, 255, 0.025), transparent 50%),
+        var(--felt-dark);
+    }
+
+    #boardCanvas {
+      width: 100%;
+      height: 100%;
+      min-height: 0;
+      display: block;
+      background: var(--felt-dark);
+      touch-action: none;
+      -webkit-tap-highlight-color: transparent;
+      cursor: crosshair;
+      image-rendering: auto;
+    }
+
+    #boardCanvas:focus {
+      outline: none;
+    }
+
+    html.keyboard-input #boardCanvas:focus {
+      outline: 3px solid rgba(199, 119, 47, 0.9);
+      outline-offset: -6px;
+    }
+
+    .board-hud {
+      position: static;
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 8px;
+      margin: 0;
+    }
+
+    .hud-item, .thinking-badge {
+      min-width: 0;
+      border: 1px solid rgba(119, 83, 43, 0.18);
+      border-radius: 8px;
+      background: rgba(255, 247, 233, 0.9);
+      box-shadow: var(--shadow);
+      backdrop-filter: blur(12px);
+    }
+
+    .hud-item {
+      padding: 8px 10px;
+    }
+
+    .hud-item span {
+      display: block;
+      color: var(--muted);
+      font-size: 11px;
+      line-height: 1.1;
+    }
+
+    .hud-item strong {
+      display: block;
+      margin-top: 3px;
+      overflow: hidden;
+      color: var(--text);
+      font-size: 14px;
+      line-height: 1.1;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .thinking-badge {
+      position: absolute;
+      left: 50%;
+      bottom: 18px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 10px 12px;
+      color: var(--text);
+      font-size: 13px;
+      line-height: 1;
+      transform: translateX(-50%);
+      z-index: 2;
+    }
+
+    .study-panel, .explain-card {
+      position: static;
+      border: 1px solid rgba(119, 83, 43, 0.24);
+      border-radius: 8px;
+      background:
+        linear-gradient(135deg, rgba(255, 255, 255, 0.52), transparent 42%),
+        rgba(255, 247, 233, 0.92);
+      box-shadow: var(--shadow);
+      backdrop-filter: blur(14px);
+    }
+
+    .study-panel {
+      margin: 0;
+      overflow: visible;
+      padding: 10px;
+    }
+
+    .study-panel[hidden], .explain-card[hidden] {
+      display: none;
+    }
+
+    .panel-head {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 10px;
+    }
+
+    .panel-head strong {
+      display: block;
+      font-size: 15px;
+      line-height: 1.2;
+    }
+
+    .panel-head span, .explain-card p, .review-meta {
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.35;
+    }
+
+    .puzzle-rail {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 6px;
+      margin-top: 10px;
+    }
+
+    .puzzle-rail button {
+      min-height: 38px;
+      padding: 0 6px;
+      font-size: 12px;
+    }
+
+    .puzzle-rail button.active {
+      border-color: var(--accent);
+      background: rgba(158, 79, 36, 0.12);
+      color: var(--accent);
+      font-weight: 700;
+    }
+
+    .review-controls {
+      display: grid;
+      grid-template-columns: 44px 1fr 44px;
+      gap: 8px;
+      align-items: center;
+      margin-top: 10px;
+    }
+
+    .review-controls button {
+      min-width: 44px;
+      padding: 0;
+      font-weight: 700;
+    }
+
+    .explain-card {
+      max-width: none;
+      overflow: hidden;
+      margin: 0;
+      padding: 10px 12px;
+    }
+
+    .explain-card h2 {
+      margin: 0;
+      color: var(--accent);
+      font-size: 15px;
+      line-height: 1.2;
+      letter-spacing: 0;
+    }
+
+    .explain-card p {
+      margin: 6px 0 0;
+      display: -webkit-box;
+      overflow: hidden;
+      -webkit-box-orient: vertical;
+      -webkit-line-clamp: 2;
+    }
+
+    .top-moves {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin-top: 8px;
+    }
+
+    .top-moves span {
+      border: 1px solid rgba(158, 79, 36, 0.22);
+      border-radius: 999px;
+      padding: 4px 7px;
+      background: rgba(255, 255, 255, 0.38);
+      color: var(--muted);
+      font-size: 11px;
+      line-height: 1;
+    }
+
+    .thinking-badge[hidden] { display: none; }
+
+    .victory-banner {
+      position: absolute;
+      left: 50%;
+      top: 16px;
+      z-index: 6;
+      width: min(520px, calc(100% - 32px));
+      transform: translateX(-50%);
+      padding: 14px 18px;
+      border: 1px solid rgba(255, 226, 140, 0.76);
+      border-radius: 14px;
+      color: #fff8df;
+      text-align: center;
+      pointer-events: none;
+      background:
+        radial-gradient(circle at 50% 0%, rgba(255, 225, 112, 0.34), transparent 54%),
+        linear-gradient(135deg, rgba(41, 25, 8, 0.92), rgba(119, 56, 14, 0.86));
+      box-shadow:
+        0 24px 70px rgba(0, 0, 0, 0.34),
+        0 0 42px rgba(255, 198, 84, 0.26),
+        inset 0 1px 0 rgba(255, 255, 255, 0.28);
+      backdrop-filter: blur(14px);
+      animation: victoryIn 360ms cubic-bezier(.2,.9,.2,1);
+    }
+
+    .victory-banner[hidden] { display: none; }
+
+    .victory-kicker {
+      display: block;
+      margin-bottom: 4px;
+      font-size: 12px;
+      font-weight: 800;
+      letter-spacing: 0.16em;
+      color: rgba(255, 229, 151, 0.86);
+    }
+
+    .victory-title {
+      display: block;
+      font-size: clamp(24px, 4vw, 42px);
+      font-weight: 900;
+      line-height: 1;
+      text-shadow: 0 2px 0 rgba(42, 19, 4, 0.8), 0 0 24px rgba(255, 218, 112, 0.42);
+    }
+
+    .victory-subtitle {
+      display: block;
+      margin-top: 8px;
+      font-size: 13px;
+      color: rgba(255, 248, 223, 0.88);
+    }
+
+    .app.has-winner .status-dot {
+      background: #ffd95d;
+      box-shadow: 0 0 0 4px rgba(255, 217, 93, 0.18), 0 0 18px rgba(255, 217, 93, 0.42);
+    }
+
+    @keyframes victoryIn {
+      from { opacity: 0; transform: translateX(-50%) translateY(-18px) scale(0.96); }
+      to { opacity: 1; transform: translateX(-50%) translateY(0) scale(1); }
+    }
+
+    .zoom-controls {
+      position: absolute;
+      right: 14px;
+      bottom: 14px;
+      display: flex;
+      gap: 6px;
+      padding: 6px;
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 10px;
+      background: rgba(255, 247, 233, 0.82);
+      backdrop-filter: blur(10px);
+      z-index: 2;
+    }
+
+    .zoom-controls button {
+      min-width: 44px;
+      min-height: 44px;
+    }
+
+    .stats {
+      min-width: 0;
+      flex: 1;
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.25;
+      text-align: center;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .toggle-btn.active {
+      border-color: rgba(158, 79, 36, 0.48);
+      background: rgba(158, 79, 36, 0.14);
+      color: var(--accent);
+      font-weight: 700;
+    }
+
+    @keyframes pulse {
+      0%, 100% { transform: scale(1); opacity: 1; }
+      50% { transform: scale(1.32); opacity: 0.72; }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      * {
+        animation-duration: 0.001ms !important;
+        transition-duration: 0.001ms !important;
+      }
+    }
+
+    @media (max-width: 420px) {
+      .topbar, .bottombar {
+        padding-left: 10px;
+        padding-right: 10px;
+        gap: 8px;
+      }
+      button, select {
+        min-height: 44px;
+        padding: 0 8px;
+        font-size: 14px;
+      }
+      h1 { font-size: 17px; }
+      .status { max-width: 40vw; }
+      .actions {
+        gap: 6px;
+      }
+      #difficultySelect {
+        max-width: 88px;
+      }
+      .panel-toggle {
+        min-width: 44px;
+      }
+      .board-hud {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 6px;
+      }
+      .hud-item {
+        padding: 7px 8px;
+      }
+      .hud-item.optional {
+        display: none;
+      }
+      .hud-item strong {
+        font-size: 13px;
+      }
+      .study-panel {
+        margin: 0;
+      }
+      .puzzle-rail {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+      .explain-card {
+        max-height: 86px;
+      }
+    }
+
+    @media (max-width: 760px) {
+      .workspace {
+        grid-template-columns: minmax(0, 1fr);
+      }
+      .app.inspector-open .workspace {
+        grid-template-columns: minmax(0, 1fr);
+      }
+      .inspector-panel {
+        position: absolute;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        height: min(44dvh, 400px);
+        max-height: min(46dvh, 420px);
+        min-height: 0;
+        border-top: 1px solid rgba(155, 122, 82, 0.42);
+        border-left: 0;
+        border-radius: 14px 14px 0 0;
+        background:
+          linear-gradient(180deg, rgba(255, 250, 239, 0.985), rgba(235, 215, 182, 0.98));
+        box-shadow: 0 -16px 32px rgba(7, 14, 10, 0.28);
+        touch-action: pan-y;
+        transform: translateY(calc(100% - 0px));
+      }
+      .app.inspector-open .inspector-panel {
+        transform: translateY(0);
+      }
+      .inspector-body {
+        max-height: calc(100% - 60px);
+        touch-action: pan-y;
+      }
+    }
+
+    @media (max-height: 520px) and (orientation: landscape) {
+      .app {
+        grid-template-rows: auto minmax(0, 1fr);
+      }
+      .workspace,
+      .app.inspector-open .workspace {
+        grid-template-columns: minmax(0, 1fr);
+      }
+      .inspector-panel {
+        position: absolute;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        height: min(38dvh, 176px);
+        max-height: min(38dvh, 176px);
+        min-height: 0;
+        border-top: 1px solid rgba(155, 122, 82, 0.42);
+        border-left: 0;
+        border-radius: 14px 14px 0 0;
+        background:
+          linear-gradient(180deg, rgba(255, 250, 239, 0.985), rgba(235, 215, 182, 0.98));
+        box-shadow: 0 -16px 32px rgba(7, 14, 10, 0.28);
+        touch-action: pan-y;
+        transform: translateY(calc(100% - 0px));
+      }
+      .app.inspector-open .inspector-panel {
+        transform: translateY(0);
+      }
+      .inspector-body {
+        max-height: calc(100% - 52px);
+        padding-top: 8px;
+        padding-bottom: 8px;
+        gap: 8px;
+        touch-action: pan-y;
+      }
+      .topbar {
+        padding: calc(4px + env(safe-area-inset-top)) 8px 4px;
+        gap: 8px;
+      }
+      .mark {
+        width: 22px;
+        height: 22px;
+      }
+      h1 {
+        font-size: 15px;
+      }
+      .status {
+        font-size: 11px;
+        max-width: 32vw;
+      }
+      .actions {
+        gap: 6px;
+      }
+      button, select {
+        min-height: 44px;
+        padding: 0 7px;
+        font-size: 14px;
+      }
+      #difficultySelect {
+        max-width: 92px;
+      }
+      .bottombar {
+        display: none;
+      }
+      .zoom-controls {
+        right: 10px;
+        bottom: 10px;
+      }
+      .victory-banner {
+        top: 10px;
+        width: min(460px, calc(100% - 20px));
+        padding: 10px 12px;
+      }
+      .victory-subtitle {
+        font-size: 12px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <main class="app">
+    <header class="topbar">
+      <div class="brand">
+        <span class="mark"></span>
+        <div>
+          <h1>&#20116;&#23376;&#26827; AI &#26827;&#38498;</h1>
+          <div class="status-row">
+            <span class="status-dot" aria-hidden="true"></span>
+            <div id="statusText" class="status" aria-live="polite">&#40657;&#26827;&#22238;&#21512;</div>
+          </div>
+        </div>
+      </div>
+      <div class="actions">
+        <button id="panelToggleBtn" class="panel-toggle" type="button" aria-label="&#23637;&#24320;&#25110;&#25240;&#21472; AI &#38754;&#26495;" aria-expanded="false" aria-controls="inspectorPanel" title="&#23637;&#24320;&#25110;&#25240;&#21472; AI &#38754;&#26495;">&#38754;&#26495;</button>
+        <select id="difficultySelect" aria-label="AI &#24378;&#24230;" title="AI &#24378;&#24230;">
+          <option value="legend" selected>&#23447;&#24072;</option>
+          <option value="master">&#22825;&#20803;</option>
+          <option value="strong">&#39640;&#25163;</option>
+          <option value="fast">&#26497;&#36895;</option>
+        </select>
+        <button id="newGameBtn" type="button" aria-label="&#24320;&#22987;&#26032;&#23616;" title="&#24320;&#22987;&#26032;&#23616;">&#26032;&#23616;</button>
+      </div>
+    </header>
+
+    <div class="workspace">
+      <section class="board-area">
+        <canvas id="boardCanvas" tabindex="0" role="application" aria-label="&#20116;&#23376;&#26827;&#26827;&#30424;&#65292;&#28857;&#20987;&#33853;&#23376;&#65292;&#25302;&#25341;&#24179;&#31227;&#65292;&#28378;&#36718;&#32553;&#25918;" title="&#28857;&#20987;&#33853;&#23376;&#65292;&#25302;&#25341;&#24179;&#31227;&#65292;&#28378;&#36718;&#32553;&#25918;"></canvas>
+        <div id="thinkingBadge" class="thinking-badge" hidden>
+          <span class="status-dot" aria-hidden="true"></span>
+          <span>AI &#25512;&#29702;&#20013;</span>
+        </div>
+        <div id="victoryBanner" class="victory-banner" hidden aria-live="assertive">
+          <span class="victory-kicker">&#32456;&#23616;&#25104;&#31435;</span>
+          <strong id="victoryTitle" class="victory-title">&#32988;&#21033;</strong>
+          <span id="victorySubtitle" class="victory-subtitle">&#20116;&#36830;&#33853;&#23450;</span>
+        </div>
+        <div class="zoom-controls">
+          <button id="zoomOutBtn" type="button" aria-label="&#32553;&#23567;&#26827;&#30424;" title="&#32553;&#23567;&#26827;&#30424;">-</button>
+          <button id="fitBtn" type="button" aria-label="&#36866;&#37197;&#26827;&#30424;" title="&#36866;&#37197;&#26827;&#30424;">&#36866;&#23631;</button>
+          <button id="zoomInBtn" type="button" aria-label="&#25918;&#22823;&#26827;&#30424;" title="&#25918;&#22823;&#26827;&#30424;">+</button>
+        </div>
+      </section>
+
+      <aside id="inspectorPanel" class="inspector-panel" aria-label="AI &#26827;&#23616;&#38754;&#26495;">
+        <div class="inspector-head">
+          <div class="inspector-title">
+            <strong>AI &#26827;&#23616;&#38754;&#26495;</strong>
+            <span>&#25512;&#29702;&#12289;&#35757;&#32451;&#21644;&#22797;&#30424;&#25910;&#32435;&#22312;&#36825;&#37324;</span>
+          </div>
+          <button id="panelCloseBtn" type="button" aria-label="&#20851;&#38381; AI &#38754;&#26495;" title="&#20851;&#38381; AI &#38754;&#26495;">&#20851;&#38381;</button>
+        </div>
+        <div class="inspector-body">
+          <nav class="modebar" aria-label="&#20027;&#27169;&#24335;">
+            <button class="mode-tab active" type="button" data-mode="play">&#23545;&#24328;</button>
+            <button class="mode-tab" type="button" data-mode="train">&#35757;&#32451;</button>
+            <button class="mode-tab" type="button" data-mode="review">&#22797;&#30424;</button>
+          </nav>
+          <div class="board-hud" aria-live="polite">
+            <div class="hud-item">
+              <span>&#24341;&#25806;</span>
+              <strong id="engineText">Threat+Minimax</strong>
+            </div>
+            <div class="hud-item">
+              <span>&#28145;&#24230;</span>
+              <strong id="depthText">--</strong>
+            </div>
+            <div class="hud-item optional">
+              <span>&#33410;&#28857;</span>
+              <strong id="nodesText">--</strong>
+            </div>
+            <div class="hud-item">
+              <span>&#32531;&#23384;</span>
+              <strong id="cacheText">&#26816;&#27979;&#20013;</strong>
+            </div>
+          </div>
+          <section id="trainingPanel" class="study-panel" hidden>
+            <div class="panel-head">
+              <div>
+                <strong id="trainingTitle">&#35838;&#31243;&#27531;&#23616;</strong>
+                <span id="trainingObjective">&#36873;&#25321;&#19968;&#20010;&#35757;&#32451;&#23616;&#38754;</span>
+              </div>
+              <button id="nextPuzzleBtn" type="button" aria-label="&#21152;&#36733;&#19979;&#19968;&#39064;&#35757;&#32451;" title="&#21152;&#36733;&#19979;&#19968;&#39064;&#35757;&#32451;">&#19979;&#19968;&#39064;</button>
+            </div>
+            <div id="puzzleRail" class="puzzle-rail"></div>
+          </section>
+          <section id="reviewPanel" class="study-panel" hidden>
+            <div class="panel-head">
+              <div>
+                <strong id="reviewTitle">&#22797;&#30424; Lite</strong>
+                <span id="reviewSubtitle">&#36880;&#25163;&#22238;&#30475;&#26827;&#35889;&#19982; AI &#25512;&#29702;</span>
+              </div>
+              <button id="exitReviewBtn" type="button" aria-label="&#36820;&#22238;&#23545;&#24328;" title="&#36820;&#22238;&#23545;&#24328;">&#36820;&#22238;</button>
+            </div>
+            <div class="review-controls">
+              <button id="reviewPrevBtn" type="button" aria-label="&#19978;&#19968;&#25163;" title="&#19978;&#19968;&#25163;">&lt;</button>
+              <div id="reviewMeta" class="review-meta">&#26242;&#26080;&#26827;&#35889;</div>
+              <button id="reviewNextBtn" type="button" aria-label="&#19979;&#19968;&#25163;" title="&#19979;&#19968;&#25163;">&gt;</button>
+            </div>
+          </section>
+          <aside id="explainCard" class="explain-card" hidden aria-live="polite">
+            <h2 id="explainTitle">AI &#35762;&#35299;</h2>
+            <p id="explainReason">&#24320;&#22987;&#23545;&#24328;&#21518;&#65292;&#36825;&#37324;&#20250;&#26174;&#31034; AI &#30340;&#25512;&#29702;&#20381;&#25454;&#12290;</p>
+            <div id="topMoves" class="top-moves"></div>
+          </aside>
+        </div>
+      </aside>
+    </div>
+
+    <footer class="bottombar">
+      <button id="undoBtn" type="button" aria-label="&#24724;&#26827;" title="&#24724;&#26827;">&#24724;&#26827;</button>
+      <button id="soundBtn" class="toggle-btn" type="button" aria-label="&#24320;&#20851;&#38899;&#25928;" aria-pressed="false" title="&#24320;&#20851;&#38899;&#25928;">&#38899;</button>
+      <div id="statsText" class="stats">&#26412;&#26426; AI &#23601;&#32490;</div>
+      <button id="hapticBtn" class="toggle-btn active" type="button" aria-label="&#24320;&#20851;&#35302;&#24863;" aria-pressed="true" title="&#24320;&#20851;&#35302;&#24863;">&#25391;</button>
+      <button id="centerBtn" type="button" aria-label="&#22238;&#21040;&#26368;&#21518;&#19968;&#25163;" title="&#22238;&#21040;&#26368;&#21518;&#19968;&#25163;">&#23621;&#20013;</button>
+    </footer>
+  </main>
+
+  <script>
+    "use strict";
+
+    const BOARD_SIZE = 25;
+    const EMPTY = 0;
+    const BLACK = 1;
+    const WHITE = 2;
+    const WORLD_CELL = 30;
+    const WORLD_MARGIN = 44;
+    const WORLD_SIZE = WORLD_MARGIN * 2 + WORLD_CELL * (BOARD_SIZE - 1);
+    const GRID_SPAN = WORLD_CELL * (BOARD_SIZE - 1);
+    const HIT_RADIUS = WORLD_CELL * 0.72;
+    const CLICK_DRAG_THRESHOLD = 8;
+    const INF = 1e15;
+    const WIN = 10000000;
+
+    const RANK = {
+      FIVE: 700,
+      LIVE4: 660,
+      DOUBLE4: 640,
+      FOUR3: 620,
+      DOUBLE3: 560,
+      RUSH4: 500,
+      LIVE3: 300
+    };
+
+    const PATTERNS = [
+      ["11111", "five"],
+      ["011110", "live4"],
+      ["011112", "rush4"],
+      ["211110", "rush4"],
+      ["11011", "rush4"],
+      ["10111", "rush4"],
+      ["11101", "rush4"],
+      ["01110", "live3"],
+      ["010110", "live3"],
+      ["011010", "live3"],
+      ["001112", "sleep3"],
+      ["211100", "sleep3"],
+      ["010112", "sleep3"],
+      ["211010", "sleep3"],
+      ["011012", "sleep3"],
+      ["210110", "sleep3"],
+      ["10011", "sleep3"],
+      ["11001", "sleep3"],
+      ["10101", "sleep3"]
+    ];
+
+    const LEVELS = {
+      fast: { label: "极速", depth: 2, time: 220, width: 7, reduceAfter: 4 },
+      strong: { label: "高手", depth: 3, time: 650, width: 10, reduceAfter: 5 },
+      master: { label: "天元", depth: 4, time: 1050, width: 12, reduceAfter: 6 },
+      legend: { label: "宗师", depth: 5, time: 1600, width: 14, reduceAfter: 7 }
+    };
+
+    const STORAGE_KEY = "gomoku-ai-lab-state-v2";
+    const OLD_STORAGE_KEY = "gomoku-ai-lab-state-v1";
+    const STATE_VERSION = 2;
+    const APP_VERSION = "50";
+    const LAUNCH_PARAMS = new URLSearchParams(location.search);
+    if (location.protocol !== "file:" && LAUNCH_PARAMS.get("v") !== APP_VERSION) {
+      LAUNCH_PARAMS.set("v", APP_VERSION);
+      window.history.replaceState(null, "", location.pathname + "?" + LAUNCH_PARAMS.toString());
+    }
+
+    const COURSE_PUZZLES = [
+      {
+        id: "vcf-entry",
+        level: "高阶",
+        title: "VCF 起手",
+        objective: "黑棋没有直接五连，先找能连续制造冲四的第一手。",
+        stones: [[9,12,BLACK],[10,12,BLACK],[11,12,BLACK],[13,11,BLACK],[14,10,BLACK],[11,10,WHITE],[12,10,WHITE],[13,12,WHITE],[10,14,WHITE],[14,14,WHITE]],
+        sideToMove: BLACK,
+        solution: [12,12],
+        hint: "不是补成普通四，而是要让两条线同时进入强迫序列。",
+        knowledgePoint: "VCF：用连续冲四锁死对手回应。"
+      },
+      {
+        id: "anti-vcf",
+        level: "高阶",
+        title: "反杀前先断",
+        objective: "白棋下一手有连续冲四路线，黑棋必须找到唯一断点。",
+        stones: [[9,12,WHITE],[10,12,WHITE],[11,12,WHITE],[13,12,WHITE],[12,10,WHITE],[12,11,WHITE],[10,10,BLACK],[11,11,BLACK],[13,13,BLACK],[14,14,BLACK]],
+        sideToMove: BLACK,
+        solution: [12,12],
+        hint: "看似可以进攻，但中心断点不补会立即崩盘。",
+        knowledgePoint: "防守搜索：先识别对手强制线的交叉断点。"
+      },
+      {
+        id: "four-three-trap",
+        level: "专家",
+        title: "四三陷阱",
+        objective: "找出同时形成冲四和活三的落点，让白棋无法兼顾。",
+        stones: [[8,12,BLACK],[9,12,BLACK],[10,12,BLACK],[12,10,BLACK],[12,11,BLACK],[13,13,BLACK],[11,10,WHITE],[14,12,WHITE],[10,14,WHITE],[15,15,WHITE]],
+        sideToMove: BLACK,
+        solution: [11,12],
+        hint: "横线不是唯一方向，竖线续攻同样重要。",
+        knowledgePoint: "四三组合：一手同时创造立即威胁和下一波威胁。"
+      },
+      {
+        id: "double-four",
+        level: "专家",
+        title: "双四定胜",
+        objective: "落子后生成两个冲四点，白棋只能挡一个。",
+        stones: [[10,11,BLACK],[11,11,BLACK],[13,11,BLACK],[12,9,BLACK],[12,10,BLACK],[12,12,BLACK],[9,9,WHITE],[10,13,WHITE],[14,10,WHITE],[15,12,WHITE]],
+        sideToMove: BLACK,
+        solution: [12,11],
+        hint: "目标点会把横线和纵线同时变成冲四。",
+        knowledgePoint: "双四：比双三更强，通常直接进入必胜。"
+      },
+      {
+        id: "diagonal-kill",
+        level: "高阶",
+        title: "斜线伏击",
+        objective: "不要被横向战场吸引，寻找斜线上的制胜启动点。",
+        stones: [[9,9,BLACK],[10,10,BLACK],[11,11,BLACK],[13,13,BLACK],[9,12,BLACK],[10,12,BLACK],[11,12,WHITE],[12,12,WHITE],[13,12,WHITE],[14,11,WHITE]],
+        sideToMove: BLACK,
+        solution: [12,12],
+        hint: "横线看起来热闹，但真正的强制线在对角线上。",
+        knowledgePoint: "方向枚举：评估必须同时扫描横、竖、两条斜线。"
+      },
+      {
+        id: "quiet-defense",
+        level: "专家",
+        title: "静默防守",
+        objective: "没有立即四连，但白棋将形成双三，黑棋要提前掐断。",
+        stones: [[10,11,WHITE],[12,11,WHITE],[11,10,WHITE],[11,12,WHITE],[9,9,BLACK],[10,10,BLACK],[13,13,BLACK],[14,14,BLACK],[8,13,BLACK]],
+        sideToMove: BLACK,
+        solution: [11,11],
+        hint: "优秀防守不是挡四，而是在对手成型前占掉枢纽。",
+        knowledgePoint: "预防式防守：提前处理对手下一手的双三枢纽。"
+      },
+      {
+        id: "candidate-prune-hard",
+        level: "专家",
+        title: "剪枝误导",
+        objective: "远处有诱饵棋，真正高价值候选在局部战场中心。",
+        stones: [[6,6,BLACK],[18,18,WHITE],[10,12,BLACK],[11,12,BLACK],[13,12,BLACK],[12,10,BLACK],[12,13,BLACK],[11,11,WHITE],[13,11,WHITE],[14,13,WHITE],[10,14,WHITE]],
+        sideToMove: BLACK,
+        solution: [12,12],
+        hint: "忽略远处噪声，候选点应围绕密集战场生成。",
+        knowledgePoint: "候选点剪枝：局部密度和威胁等级比远处孤子更重要。"
+      },
+      {
+        id: "alpha-beta-hard",
+        level: "专家",
+        title: "剪枝主变",
+        objective: "选择最强迫的主变起点，让搜索树最快收敛。",
+        stones: [[8,10,BLACK],[9,11,BLACK],[10,12,BLACK],[11,13,BLACK],[13,15,BLACK],[9,9,WHITE],[10,9,WHITE],[11,9,WHITE],[12,9,WHITE],[12,12,WHITE],[14,14,WHITE]],
+        sideToMove: BLACK,
+        solution: [12,14],
+        hint: "强制线越明确，Alpha-Beta 越容易剪掉旁支。",
+        knowledgePoint: "Alpha-Beta 主变：先搜强制威胁可以极大提高效率。"
+      },
+      {
+        id: "overline-balance",
+        level: "高阶",
+        title: "诱敌过防",
+        objective: "黑棋有多个看似进攻点，找出能保持双向续攻的稳定落点。",
+        stones: [[9,12,BLACK],[10,12,BLACK],[12,12,BLACK],[13,12,BLACK],[11,10,BLACK],[11,14,BLACK],[8,11,WHITE],[14,11,WHITE],[10,13,WHITE],[12,13,WHITE]],
+        sideToMove: BLACK,
+        solution: [11,12],
+        hint: "不是所有补四都好，关键是落后还要保留下一手。",
+        knowledgePoint: "攻防平衡：落点要同时考虑本手威胁和后续弹性。"
+      },
+      {
+        id: "edge-compression",
+        level: "专家",
+        title: "边路压缩",
+        objective: "战场靠近边线，空间被压缩后要找到唯一有效交叉点。",
+        stones: [[3,10,BLACK],[4,10,BLACK],[5,10,BLACK],[6,9,BLACK],[6,11,BLACK],[3,9,WHITE],[4,9,WHITE],[5,11,WHITE],[7,10,WHITE],[7,12,WHITE]],
+        sideToMove: BLACK,
+        solution: [6,10],
+        hint: "边线减少了活路，交叉点比延长线更重要。",
+        knowledgePoint: "边路搜索：边界会改变棋型开放端数量。"
+      },
+      {
+        id: "sente-switch",
+        level: "宗师",
+        title: "先手转换",
+        objective: "黑棋看似要防守，但有一手能把防守转为主动强迫。",
+        stones: [[10,12,WHITE],[11,12,WHITE],[12,12,WHITE],[14,12,WHITE],[12,10,BLACK],[12,11,BLACK],[12,13,BLACK],[11,10,BLACK],[13,14,BLACK],[15,15,WHITE]],
+        sideToMove: BLACK,
+        solution: [13,12],
+        hint: "用进攻方式解除防守压力，目标点要同时挡住并反击。",
+        knowledgePoint: "先手转换：防守点如果兼具攻击价值，就能夺回主动。"
+      },
+      {
+        id: "multi-agent-reading",
+        level: "宗师",
+        title: "多线读秒",
+        objective: "在三条候选主线中选出最强的一手，避免被白棋反制。",
+        stones: [[9,9,BLACK],[10,10,BLACK],[11,11,BLACK],[13,13,BLACK],[9,13,BLACK],[10,13,BLACK],[11,13,BLACK],[12,10,WHITE],[12,11,WHITE],[12,13,WHITE],[13,12,WHITE],[14,14,WHITE]],
+        sideToMove: BLACK,
+        solution: [12,12],
+        hint: "中心落点不是普通补棋，而是同时连接三条候选主线。",
+        knowledgePoint: "多主线评估：综合比较进攻、防守和后续强制线。"
+      }
+    ];
+
+    const canvas = document.getElementById("boardCanvas");
+    const ctx = canvas.getContext("2d", { alpha: false, desynchronized: true });
+    const appEl = document.querySelector(".app");
+    const statusText = document.getElementById("statusText");
+    const statsText = document.getElementById("statsText");
+    const panelToggleBtn = document.getElementById("panelToggleBtn");
+    const panelCloseBtn = document.getElementById("panelCloseBtn");
+    const inspectorPanel = document.getElementById("inspectorPanel");
+    const modeTabs = Array.from(document.querySelectorAll(".mode-tab"));
+    const engineText = document.getElementById("engineText");
+    const depthText = document.getElementById("depthText");
+    const nodesText = document.getElementById("nodesText");
+    const cacheText = document.getElementById("cacheText");
+    const thinkingBadge = document.getElementById("thinkingBadge");
+    const victoryBanner = document.getElementById("victoryBanner");
+    const victoryTitle = document.getElementById("victoryTitle");
+    const victorySubtitle = document.getElementById("victorySubtitle");
+    const trainingPanel = document.getElementById("trainingPanel");
+    const trainingTitle = document.getElementById("trainingTitle");
+    const trainingObjective = document.getElementById("trainingObjective");
+    const nextPuzzleBtn = document.getElementById("nextPuzzleBtn");
+    const puzzleRail = document.getElementById("puzzleRail");
+    const reviewPanel = document.getElementById("reviewPanel");
+    const reviewTitle = document.getElementById("reviewTitle");
+    const reviewSubtitle = document.getElementById("reviewSubtitle");
+    const reviewMeta = document.getElementById("reviewMeta");
+    const reviewPrevBtn = document.getElementById("reviewPrevBtn");
+    const reviewNextBtn = document.getElementById("reviewNextBtn");
+    const exitReviewBtn = document.getElementById("exitReviewBtn");
+    const explainCard = document.getElementById("explainCard");
+    const explainTitle = document.getElementById("explainTitle");
+    const explainReason = document.getElementById("explainReason");
+    const topMovesEl = document.getElementById("topMoves");
+    const newGameBtn = document.getElementById("newGameBtn");
+    const undoBtn = document.getElementById("undoBtn");
+    const soundBtn = document.getElementById("soundBtn");
+    const centerBtn = document.getElementById("centerBtn");
+    const hapticBtn = document.getElementById("hapticBtn");
+    const fitBtn = document.getElementById("fitBtn");
+    const zoomInBtn = document.getElementById("zoomInBtn");
+    const zoomOutBtn = document.getElementById("zoomOutBtn");
+    const difficultySelect = document.getElementById("difficultySelect");
+    const isStandalone = Boolean(window.navigator.standalone) ||
+      window.matchMedia("(display-mode: standalone)").matches;
+    const perfMode = isStandalone || /iPhone|iPad|iPod/i.test(navigator.userAgent);
+    const maxPixelRatio = 2;
+    const BOARD_LAYER_PIXEL_RATIO = 2.4;
+    const STONE_SPRITE_VERSION = "game-v9";
+
+    let grid = [];
+    let history = [];
+    let moveMeta = [];
+    let winner = null;
+    let winLine = [];
+    let thinking = false;
+    let mode = "play";
+    let currentPuzzleId = COURSE_PUZZLES[0].id;
+    let reviewIndex = 0;
+    let settings = { sound: false, haptic: true, manualDifficulty: false, inspectorOpen: false };
+    let lastExplain = null;
+    let aiStats = {};
+    let boardHash = 0;
+    let tt = new Map();
+    let transform = { scale: 1, x: 0, y: 0 };
+    let pointerMap = new Map();
+    let drag = null;
+    let lastTapCandidate = null;
+    let hoverCandidate = null;
+    let pixelRatio = 1;
+    let drawQueued = false;
+    let aiWorker = createAiWorker();
+    let aiRequestSeq = 0;
+    let activeAiRequest = null;
+    let boardLayer = null;
+    let boardLayerRatio = 0;
+    let stoneSprites = new Map();
+    let userViewAdjusted = false;
+    let lastCanvasWidth = 0;
+    let lastCanvasHeight = 0;
+    let qaAiDelayMs = 0;
+    let keyboardInputMode = false;
+    let drawPerf = { count: 0, lastMs: 0, maxMs: 0 };
+
+    if (perfMode) setStats("\u4e3b\u5c4f\u5e55\u68cb\u529b\u4f18\u5148");
+
+    function resetState(options = {}) {
+      grid = Array.from({ length: BOARD_SIZE }, () => Array(BOARD_SIZE).fill(EMPTY));
+      history = [];
+      moveMeta = [];
+      boardHash = 0;
+      winner = null;
+      thinking = false;
+      reviewIndex = 0;
+      lastExplain = null;
+      if (!options.keepMode) {
+        mode = "play";
+        settings.inspectorOpen = false;
+      }
+      aiStats = {};
+      hideVictoryBanner();
+      setStatus("\u9ed1\u68cb\u56de\u5408");
+      setStats(perfMode ? "\u4e3b\u5c4f\u5e55\u68cb\u529b\u4f18\u5148" : "\u672c\u673a AI \u5c31\u7eea");
+      if (!options.keepStorage) clearSavedGame();
+      renderExplain(null);
+      updateToggleButtons();
+      setInspectorOpen(settings.inspectorOpen, { skipSave: true });
+      updateModeUi();
+      updateUiState();
+      updateStatsPanel();
+      fitBoard();
+      requestDraw();
+    }
+
+    function setStatus(text) { statusText.textContent = text; }
+    function setStats(text) { statsText.textContent = text; }
+    function setThinking(value) {
+      thinking = value;
+      appEl.classList.toggle("is-thinking", value);
+      thinkingBadge.hidden = !value;
+      updateUiState();
+    }
+
+    function hideVictoryBanner() {
+      appEl.classList.remove("has-winner");
+      winLine = [];
+      victoryBanner.hidden = true;
+    }
+
+    function showVictoryBanner(color, x, y) {
+      const blackWin = color === BLACK;
+      winLine = getWinLine(x, y, color);
+      appEl.classList.add("has-winner");
+      victoryTitle.textContent = blackWin ? "黑棋封神" : "白棋绝杀";
+      victorySubtitle.textContent = `${blackWin ? "玩家" : "AI"} 在 ${coordName(x, y)} 完成五连，棋局定格。`;
+      victoryBanner.hidden = false;
+      requestDraw();
+    }
+
+    function updateUiState() {
+      newGameBtn.disabled = thinking;
+      undoBtn.disabled = thinking || history.length === 0 || mode !== "play";
+      difficultySelect.disabled = thinking;
+      centerBtn.disabled = history.length === 0;
+      reviewPrevBtn.disabled = reviewIndex <= 0;
+      reviewNextBtn.disabled = reviewIndex >= history.length;
+    }
+
+    function updateModeUi() {
+      for (const tab of modeTabs) tab.classList.toggle("active", tab.dataset.mode === mode);
+      trainingPanel.hidden = mode !== "train";
+      reviewPanel.hidden = mode !== "review";
+      if (mode === "train") {
+        renderPuzzlePanel();
+      } else if (mode === "review") {
+        reviewIndex = Math.max(0, Math.min(history.length, reviewIndex || history.length));
+        renderReviewPanel();
+      }
+      if (mode !== "play") setInspectorOpen(true, { skipSave: true });
+      updateUiState();
+      syncCanvasAfterLayout();
+    }
+
+    function switchMode(nextMode) {
+      if (thinking) return;
+      mode = nextMode;
+      if (mode === "play") {
+        reviewIndex = history.length;
+        setInspectorOpen(false);
+        setStatus(winner ? (winner === BLACK ? "\u9ed1\u68cb\u80dc" : "\u767d\u68cb\u80dc") : "\u9ed1\u68cb\u56de\u5408");
+        const last = history[history.length - 1];
+        if (winner && last) showVictoryBanner(winner, last[0], last[1]);
+        else hideVictoryBanner();
+      } else if (mode === "train") {
+        loadPuzzle(currentPuzzleId, { keepMode: true });
+      } else if (mode === "review") {
+        reviewIndex = history.length;
+        setStatus("复盘 · AI 讲解");
+      }
+      updateModeUi();
+      saveSnapshot();
+    }
+
+    function setInspectorOpen(value, options = {}) {
+      settings.inspectorOpen = Boolean(value);
+      appEl.classList.toggle("inspector-open", settings.inspectorOpen);
+      panelToggleBtn.setAttribute("aria-expanded", String(settings.inspectorOpen));
+      panelToggleBtn.textContent = settings.inspectorOpen ? "收起" : "面板";
+      if (!options.skipSave) saveSnapshot();
+      syncCanvasAfterLayout();
+    }
+
+    function applyLaunchParams() {
+      const launchMode = LAUNCH_PARAMS.get("mode");
+      if (launchMode === "play") {
+        if (mode === "train") {
+          resetState({ keepStorage: true });
+        } else {
+          switchMode("play");
+        }
+      } else if (launchMode === "train") {
+        loadPuzzle(currentPuzzleId, { keepMode: true });
+      } else if (launchMode === "review") {
+        switchMode("review");
+      }
+    }
+
+    function formatNodes(value) {
+      const n = Number(value || 0);
+      if (n >= 1000000) return (n / 1000000).toFixed(1) + "M";
+      if (n >= 1000) return (n / 1000).toFixed(1) + "K";
+      return n ? String(n) : "--";
+    }
+
+    function formatSeconds(ms) {
+      const value = Number(ms || 0);
+      return value ? (value / 1000).toFixed(2) + "s" : "--";
+    }
+
+    function updateStatsPanel(stats = aiStats) {
+      const level = LEVELS[difficultySelect.value] || LEVELS.legend;
+      engineText.textContent = (aiWorker ? "Worker " : "Local ") + level.label;
+      depthText.textContent = stats && stats.depth ? "D" + stats.depth : "--";
+      nodesText.textContent = stats ? formatNodes(stats.nodes) : "--";
+      if (cacheText.textContent === "\u68c0\u6d4b\u4e2d") updateConnectivity();
+    }
+
+    function coordName(x, y) {
+      let n = x;
+      let label = "";
+      while (n >= 0) {
+        label = String.fromCharCode(65 + (n % 26)) + label;
+        n = Math.floor(n / 26) - 1;
+      }
+      return label + String(y + 1);
+    }
+
+    function visibleHistory() {
+      return mode === "review" ? history.slice(0, reviewIndex) : history;
+    }
+
+    function currentPuzzle() {
+      return COURSE_PUZZLES.find(item => item.id === currentPuzzleId) || COURSE_PUZZLES[0];
+    }
+
+    function pushMeta(meta) {
+      moveMeta.push(meta || {});
+      while (moveMeta.length > history.length) moveMeta.pop();
+    }
+
+    function trimMeta() {
+      while (moveMeta.length > history.length) moveMeta.pop();
+    }
+
+    function updateToggleButtons() {
+      soundBtn.classList.toggle("active", settings.sound);
+      soundBtn.setAttribute("aria-pressed", String(settings.sound));
+      hapticBtn.classList.toggle("active", settings.haptic);
+      hapticBtn.setAttribute("aria-pressed", String(settings.haptic));
+      panelToggleBtn.setAttribute("aria-expanded", String(settings.inspectorOpen));
+    }
+
+    function haptic(pattern = 12) {
+      if (settings.haptic && navigator.vibrate) navigator.vibrate(pattern);
+    }
+
+    function playTone(kind = "stone") {
+      if (!settings.sound) return;
+      try {
+        const AudioContext = window.AudioContext || window.webkitAudioContext;
+        if (!AudioContext) return;
+        const audio = new AudioContext();
+        const osc = audio.createOscillator();
+        const gain = audio.createGain();
+        osc.type = "sine";
+        osc.frequency.value = kind === "success" ? 660 : kind === "error" ? 180 : 340;
+        gain.gain.setValueAtTime(0.0001, audio.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.08, audio.currentTime + 0.01);
+        gain.gain.exponentialRampToValueAtTime(0.0001, audio.currentTime + 0.12);
+        osc.connect(gain);
+        gain.connect(audio.destination);
+        osc.start();
+        osc.stop(audio.currentTime + 0.14);
+        setTimeout(() => audio.close(), 180);
+      } catch (err) {}
+    }
+
+    function feedback(kind = "stone") {
+      haptic(kind === "success" ? [12, 30, 18] : kind === "error" ? [28, 35, 28] : 10);
+      playTone(kind);
+    }
+
+    function renderPuzzlePanel() {
+      const puzzle = currentPuzzle();
+      trainingTitle.textContent = puzzle.title;
+      trainingObjective.textContent = puzzle.objective;
+      puzzleRail.innerHTML = "";
+      COURSE_PUZZLES.forEach((item, index) => {
+        const btn = document.createElement("button");
+        btn.type = "button";
+        btn.textContent = String(index + 1).padStart(2, "0") + " " + (item.level || "训练") + " · " + item.title;
+        btn.className = item.id === currentPuzzleId ? "active" : "";
+        btn.addEventListener("click", () => loadPuzzle(item.id));
+        puzzleRail.appendChild(btn);
+      });
+    }
+
+    function loadPuzzle(id, options = {}) {
+      const puzzle = COURSE_PUZZLES.find(item => item.id === id) || COURSE_PUZZLES[0];
+      currentPuzzleId = puzzle.id;
+      mode = "train";
+      grid = Array.from({ length: BOARD_SIZE }, () => Array(BOARD_SIZE).fill(EMPTY));
+      history = [];
+      moveMeta = [];
+      boardHash = 0;
+      winner = null;
+      thinking = false;
+      reviewIndex = 0;
+      hideVictoryBanner();
+      lastExplain = {
+        title: "课程残局：" + puzzle.title,
+        reason: puzzle.objective,
+        knowledgePoint: puzzle.knowledgePoint,
+        topMoves: [{ move: puzzle.level || "高阶", score: "答案隐藏" }]
+      };
+      for (const [x, y, color] of puzzle.stones) {
+        if (x >= 0 && y >= 0 && x < BOARD_SIZE && y < BOARD_SIZE && grid[y][x] === EMPTY) {
+          grid[y][x] = color;
+          history.push([x, y, color]);
+          boardHash = (boardHash ^ hashStone(x, y, color)) >>> 0;
+          moveMeta.push({ source: "puzzle", knowledgePoint: puzzle.knowledgePoint });
+        }
+      }
+      setStatus("训练：黑棋找关键手");
+      setStats(puzzle.knowledgePoint);
+      renderPuzzlePanel();
+      renderExplain(lastExplain);
+      updateModeUi();
+      fitBoard();
+      centerLast();
+      requestDraw();
+      if (!options.skipSave) saveSnapshot();
+    }
+
+    function nextPuzzle() {
+      const index = COURSE_PUZZLES.findIndex(item => item.id === currentPuzzleId);
+      const next = COURSE_PUZZLES[(index + 1 + COURSE_PUZZLES.length) % COURSE_PUZZLES.length];
+      loadPuzzle(next.id);
+    }
+
+    function handleTrainingMove(x, y) {
+      if (thinking || mode !== "train") return;
+      const puzzle = currentPuzzle();
+      if (x === puzzle.solution[0] && y === puzzle.solution[1]) {
+        if (placeMove(x, y, BLACK)) {
+          pushMeta({
+            source: "student",
+            explain: {
+              title: "解题成功",
+            reason: "你找到了 " + coordName(x, y) + "，这个点正是本局的关键候选点。",
+            knowledgePoint: puzzle.knowledgePoint,
+              topMoves: [{ move: coordName(x, y), score: "正确" }]
+            }
+          });
+          lastExplain = moveMeta[moveMeta.length - 1].explain;
+          setStatus("训练完成");
+          setStats("知识点：" + puzzle.knowledgePoint);
+          renderExplain(lastExplain);
+          feedback("success");
+          saveSnapshot();
+          centerLast();
+        }
+      } else {
+        lastExplain = {
+          title: "再想一步",
+        reason: coordName(x, y) + " 不是本题的关键点。" + (puzzle.hint ? " 提示：" + puzzle.hint : " 先观察对手威胁、己方连线和候选点范围。"),
+        knowledgePoint: puzzle.knowledgePoint,
+          topMoves: [{ move: puzzle.level || "高阶", score: "继续读线" }]
+        };
+        setStatus("训练：再试一次");
+        setStats(puzzle.knowledgePoint);
+        renderExplain(lastExplain);
+        feedback("error");
+      }
+      updateUiState();
+      requestDraw();
+    }
+
+    function renderReviewPanel() {
+      reviewTitle.textContent = "复盘 Lite";
+      if (!history.length) {
+        reviewSubtitle.textContent = "完成一局或训练题后可回看棋谱";
+        reviewMeta.textContent = "暂无棋谱";
+        renderExplain(null);
+        updateUiState();
+        return;
+      }
+      reviewIndex = Math.max(0, Math.min(history.length, reviewIndex));
+      const current = history[reviewIndex - 1];
+      const meta = moveMeta[reviewIndex - 1] || {};
+      if (!current) {
+        reviewSubtitle.textContent = "开局位置";
+        reviewMeta.textContent = "第 0 手 / " + history.length;
+        renderExplain({
+          title: "复盘起点",
+          reason: "从这里开始逐手查看对局，观察威胁如何形成。",
+          knowledgePoint: "状态空间搜索",
+          topMoves: []
+        });
+      } else {
+        const colorName = current[2] === BLACK ? "黑棋" : "白棋";
+        reviewSubtitle.textContent = "第 " + reviewIndex + " 手：" + colorName + " " + coordName(current[0], current[1]);
+        reviewMeta.textContent = "第 " + reviewIndex + " / " + history.length + " 手" +
+          (meta.stats ? " · D" + (meta.stats.depth || 0) + " · " + formatNodes(meta.stats.nodes) : "");
+        renderExplain(meta.explain || {
+          title: colorName + "落子 " + coordName(current[0], current[1]),
+          reason: meta.knowledgePoint || "这一手记录在棋谱中，可结合棋盘走势观察局部战场。",
+          knowledgePoint: meta.knowledgePoint || "棋谱复盘",
+          topMoves: []
+        });
+      }
+      updateUiState();
+    }
+
+    function renderExplain(explain) {
+      lastExplain = explain || null;
+      if (!explain) {
+        explainCard.hidden = mode === "play";
+        explainTitle.textContent = "AI 讲解";
+        explainReason.textContent = "开始对弈后，这里会显示 AI 的推理依据。";
+        topMovesEl.innerHTML = "";
+        syncCanvasAfterLayout();
+        return;
+      }
+      explainCard.hidden = false;
+      explainTitle.textContent = explain.title || "AI 讲解";
+      const point = explain.knowledgePoint ? " 知识点：" + explain.knowledgePoint : "";
+      explainReason.textContent = (explain.reason || "AI 已完成本步搜索。") + point;
+      topMovesEl.innerHTML = "";
+      for (const item of explain.topMoves || []) {
+        const chip = document.createElement("span");
+        chip.textContent = item.move + (item.score ? " · " + item.score : "");
+        topMovesEl.appendChild(chip);
+      }
+      syncCanvasAfterLayout();
+    }
+
+    function updateConnectivity() {
+      if (!cacheText) return;
+      if (location.protocol === "file:") {
+        cacheText.textContent = "\u5355\u6587\u4ef6";
+      } else if (!navigator.onLine) {
+        cacheText.textContent = "\u79bb\u7ebf\u53ef\u7528";
+      } else {
+        cacheText.textContent = "\u53ef\u90e8\u7f72";
+      }
+    }
+
+    function saveSnapshot() {
+      try {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify({
+          schemaVersion: STATE_VERSION,
+          appVersion: APP_VERSION,
+          boardSize: BOARD_SIZE,
+          mode,
+          history,
+          moveMeta,
+          difficulty: difficultySelect.value,
+          puzzleId: currentPuzzleId,
+          settings: { ...settings, inspectorOpen: mode !== "play" && settings.inspectorOpen },
+          savedAt: Date.now()
+        }));
+      } catch (err) {}
+    }
+
+    function clearSavedGame() {
+      try {
+        localStorage.removeItem(STORAGE_KEY);
+        localStorage.removeItem(OLD_STORAGE_KEY);
+      } catch (err) {}
+    }
+
+    function restoreSnapshot() {
+      try {
+        const raw = localStorage.getItem(STORAGE_KEY) || localStorage.getItem(OLD_STORAGE_KEY);
+        if (!raw) return false;
+        const data = JSON.parse(raw);
+        if (!data || !Array.isArray(data.history)) return false;
+        const schemaVersion = data.schemaVersion == null && data.version ? STATE_VERSION : Number(data.schemaVersion || 0);
+        if (schemaVersion !== STATE_VERSION || data.boardSize !== BOARD_SIZE) {
+          clearSavedGame();
+          return false;
+        }
+        grid = Array.from({ length: BOARD_SIZE }, () => Array(BOARD_SIZE).fill(EMPTY));
+        history = [];
+        moveMeta = [];
+        boardHash = 0;
+        for (const item of data.history) {
+          const x = item[0], y = item[1], color = item[2];
+          if (x >= 0 && y >= 0 && x < BOARD_SIZE && y < BOARD_SIZE &&
+              (color === BLACK || color === WHITE) && grid[y][x] === EMPTY) {
+            grid[y][x] = color;
+            history.push([x, y, color]);
+            boardHash = (boardHash ^ hashStone(x, y, color)) >>> 0;
+          }
+        }
+        if (Array.isArray(data.moveMeta)) moveMeta = data.moveMeta.slice(0, history.length);
+        while (moveMeta.length < history.length) moveMeta.push({});
+        if (data.difficulty && LEVELS[data.difficulty]) {
+          const manualDifficulty = data.settings && data.settings.manualDifficulty;
+          difficultySelect.value = perfMode && data.difficulty === "fast" && !manualDifficulty ? "master" : data.difficulty;
+        }
+        if (data.puzzleId && COURSE_PUZZLES.some(item => item.id === data.puzzleId)) currentPuzzleId = data.puzzleId;
+        if (data.settings) settings = { ...settings, ...data.settings };
+        mode = data.mode === "train" || data.mode === "review" ? data.mode : "play";
+        reviewIndex = mode === "review" ? history.length : 0;
+        lastExplain = moveMeta.map(item => item.explain).filter(Boolean).pop() || null;
+        const last = history[history.length - 1];
+        winner = last && checkWin(last[0], last[1], last[2]) ? last[2] : null;
+        winLine = winner && last ? getWinLine(last[0], last[1], last[2]) : [];
+        if (mode === "train") {
+          const puzzle = currentPuzzle();
+          setStatus("训练：继续残局");
+          setStats(puzzle.knowledgePoint);
+          if (!lastExplain) {
+            lastExplain = {
+              title: "课程残局：" + puzzle.title,
+              reason: puzzle.objective,
+              knowledgePoint: puzzle.knowledgePoint,
+              topMoves: [{ move: "关键点隐藏", score: "请先独立判断" }]
+            };
+          }
+        } else if (mode === "review") {
+          setStatus("复盘 · AI 讲解");
+          setStats(history.length ? "已恢复复盘棋谱" : "暂无棋谱");
+        } else {
+          setStatus(winner === BLACK ? "\u9ed1\u68cb\u80dc" : winner === WHITE ? "\u767d\u68cb\u80dc" : "\u9ed1\u68cb\u56de\u5408");
+          setStats(history.length ? "\u5df2\u6062\u590d\u4e0a\u6b21\u5bf9\u5c40" : "\u672c\u673a AI \u5c31\u7eea");
+          if (winner && last) showVictoryBanner(winner, last[0], last[1]);
+          else hideVictoryBanner();
+        }
+        setThinking(false);
+        updateToggleButtons();
+        setInspectorOpen(settings.inspectorOpen || mode !== "play", { skipSave: true });
+        renderExplain(lastExplain);
+        updateModeUi();
+        updateStatsPanel();
+        fitBoard();
+        if (history.length) centerLast();
+        requestDraw();
+        return true;
+      } catch (err) {
+        return false;
+      }
+    }
+
+    function other(color) { return color === BLACK ? WHITE : BLACK; }
+    function hashStone(x, y, color) {
+      return (Math.imul(x + 1, 73856093) ^ Math.imul(y + 1, 19349663) ^ Math.imul(color, 83492791)) >>> 0;
+    }
+    function isValid(x, y) {
+      return x >= 0 && y >= 0 && x < BOARD_SIZE && y < BOARD_SIZE && grid[y][x] === EMPTY;
+    }
+
+    function canvasSize() {
+      const rect = canvas.getBoundingClientRect();
+      return { width: rect.width, height: rect.height };
+    }
+
+    function isWideCanvas(size = canvasSize()) {
+      return size.width >= 760 && size.height >= 520;
+    }
+
+    function isCompactLandscape(size = canvasSize()) {
+      return size.width > size.height && size.height <= 520;
+    }
+
+    function syncCanvasAfterLayout() {
+      requestAnimationFrame(() => resizeCanvas({ preserveUserView: true }));
+    }
+
+    function resizeCanvas(options = {}) {
+      const dpr = Math.min(maxPixelRatio, Math.max(1, window.devicePixelRatio || 1));
+      const rect = canvas.getBoundingClientRect();
+      const cssWidth = Math.max(1, rect.width);
+      const cssHeight = Math.max(1, rect.height);
+      const nextWidth = Math.max(1, Math.floor(cssWidth * dpr));
+      const nextHeight = Math.max(1, Math.floor(cssHeight * dpr));
+      const changed = canvas.width !== nextWidth || canvas.height !== nextHeight || pixelRatio !== dpr ||
+        Math.abs(lastCanvasWidth - cssWidth) > 0.5 || Math.abs(lastCanvasHeight - cssHeight) > 0.5;
+      if (!changed && !options.force) {
+        clampTransform();
+        requestDraw();
+        return;
+      }
+      if (pixelRatio !== dpr) boardLayer = null;
+      pixelRatio = dpr;
+      lastCanvasWidth = cssWidth;
+      lastCanvasHeight = cssHeight;
+      canvas.width = nextWidth;
+      canvas.height = nextHeight;
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+      if (options.fit || (!userViewAdjusted && (!history.length || isWideCanvas({ width: cssWidth, height: cssHeight })))) {
+        fitBoard();
+      } else {
+        clampTransform();
+      }
+      requestDraw();
+    }
+
+    function ensureBoardLayer() {
+      const ratio = Math.min(BOARD_LAYER_PIXEL_RATIO, Math.max(2, pixelRatio));
+      if (boardLayer && boardLayerRatio === ratio) return boardLayer;
+      const layer = document.createElement("canvas");
+      layer.width = Math.ceil(WORLD_SIZE * ratio);
+      layer.height = Math.ceil(WORLD_SIZE * ratio);
+      const layerCtx = layer.getContext("2d", { alpha: false });
+      layerCtx.imageSmoothingEnabled = true;
+      layerCtx.imageSmoothingQuality = "high";
+      layerCtx.setTransform(ratio, 0, 0, ratio, 0, 0);
+      drawBoardSurface(layerCtx);
+      boardLayer = layer;
+      boardLayerRatio = ratio;
+      return boardLayer;
+    }
+
+    function drawBoardSurface(context) {
+      context.save();
+      const outerGrad = context.createLinearGradient(0, 0, WORLD_SIZE, WORLD_SIZE);
+      outerGrad.addColorStop(0, "#6b421f");
+      outerGrad.addColorStop(0.5, "#a6672f");
+      outerGrad.addColorStop(1, "#3e210f");
+      context.shadowColor = "rgba(0, 0, 0, 0.38)";
+      context.shadowBlur = 18;
+      context.shadowOffsetY = 12;
+      context.fillStyle = outerGrad;
+      roundRect(context, 0, 0, WORLD_SIZE, WORLD_SIZE, 24);
+      context.fill();
+      context.shadowColor = "transparent";
+      drawWoodGrain(context, 0, 0, WORLD_SIZE, WORLD_SIZE, 0.42);
+
+      const inset = WORLD_MARGIN - 24;
+      const boardSize = GRID_SPAN + 48;
+      const boardGrad = context.createLinearGradient(inset, inset, inset + boardSize, inset + boardSize);
+      boardGrad.addColorStop(0, "#f7d99a");
+      boardGrad.addColorStop(0.28, "#e5b96f");
+      boardGrad.addColorStop(0.68, "#cf8840");
+      boardGrad.addColorStop(1, "#9f5a25");
+      context.fillStyle = boardGrad;
+      roundRect(context, inset, inset, boardSize, boardSize, 18);
+      context.fill();
+      drawWoodGrain(context, inset, inset, boardSize, boardSize, 0.38);
+
+      const glow = context.createRadialGradient(WORLD_SIZE * 0.45, WORLD_SIZE * 0.28, 40, WORLD_SIZE * 0.5, WORLD_SIZE * 0.5, WORLD_SIZE * 0.68);
+      glow.addColorStop(0, "rgba(255, 234, 168, 0.24)");
+      glow.addColorStop(0.48, "rgba(255, 207, 115, 0.06)");
+      glow.addColorStop(1, "rgba(77, 34, 10, 0.16)");
+      context.fillStyle = glow;
+      roundRect(context, inset, inset, boardSize, boardSize, 18);
+      context.fill();
+
+      context.strokeStyle = "rgba(255, 232, 176, 0.24)";
+      context.lineWidth = 2.6;
+      roundRect(context, inset + 7, inset + 7, boardSize - 14, boardSize - 14, 12);
+      context.stroke();
+
+      context.strokeStyle = "rgba(50, 27, 9, 0.72)";
+      context.lineWidth = 3.2;
+      roundRect(context, inset + 3, inset + 3, boardSize - 6, boardSize - 6, 14);
+      context.stroke();
+
+      context.strokeStyle = "rgba(22, 12, 4, 0.94)";
+      context.lineWidth = 1.72;
+      context.beginPath();
+      for (let i = 0; i < BOARD_SIZE; i += 1) {
+        const p = WORLD_MARGIN + i * WORLD_CELL;
+        context.moveTo(WORLD_MARGIN, p);
+        context.lineTo(WORLD_MARGIN + GRID_SPAN, p);
+        context.moveTo(p, WORLD_MARGIN);
+        context.lineTo(p, WORLD_MARGIN + GRID_SPAN);
+      }
+      context.stroke();
+
+      context.strokeStyle = "rgba(8, 4, 2, 0.98)";
+      context.lineWidth = 2.72;
+      context.beginPath();
+      for (let i = 0; i < BOARD_SIZE; i += 1) {
+        const centerIndex = Math.floor((BOARD_SIZE - 1) / 2);
+        if (i !== 0 && i !== BOARD_SIZE - 1 && i !== centerIndex && (i + 1) % 5 !== 0) continue;
+        const p = WORLD_MARGIN + i * WORLD_CELL;
+        context.moveTo(WORLD_MARGIN, p);
+        context.lineTo(WORLD_MARGIN + GRID_SPAN, p);
+        context.moveTo(p, WORLD_MARGIN);
+        context.lineTo(p, WORLD_MARGIN + GRID_SPAN);
+      }
+      context.stroke();
+
+      drawStarPoints(context);
+      drawBoardLabels(context);
+      context.restore();
+    }
+
+    function drawWoodGrain(context, x, y, width, height, strength) {
+      context.save();
+      context.beginPath();
+      roundRect(context, x, y, width, height, 18);
+      context.clip();
+      for (let i = 0; i < 118; i += 1) {
+        const yy = y + 8 + ((i * 37) % Math.max(1, height - 16));
+        const wobble = Math.sin(i * 1.7) * 18;
+        context.strokeStyle = `rgba(70, 32, 9, ${0.05 * strength})`;
+        context.lineWidth = 0.75 + (i % 4) * 0.42;
+        context.beginPath();
+        context.moveTo(x - 12, yy);
+        context.bezierCurveTo(x + width * 0.24, yy + wobble, x + width * 0.66, yy - wobble * 0.7, x + width + 12, yy + Math.sin(i) * 9);
+        context.stroke();
+      }
+      for (let i = 0; i < 54; i += 1) {
+        const xx = x + 10 + ((i * 53) % Math.max(1, width - 20));
+        const alpha = (i % 2 ? 0.026 : 0.018) * strength;
+        context.strokeStyle = `rgba(255, 226, 160, ${alpha})`;
+        context.lineWidth = 0.8;
+        context.beginPath();
+        context.moveTo(xx, y + 8);
+        context.bezierCurveTo(xx + Math.sin(i) * 8, y + height * 0.28, xx - Math.cos(i * 0.7) * 10, y + height * 0.74, xx + Math.sin(i * 1.3) * 5, y + height - 8);
+        context.stroke();
+      }
+      for (let i = 0; i < 7; i += 1) {
+        const kx = x + width * (0.18 + ((i * 0.19) % 0.68));
+        const ky = y + height * (0.16 + ((i * 0.23) % 0.7));
+        const rg = context.createRadialGradient(kx, ky, 2, kx, ky, 36 + i * 4);
+        rg.addColorStop(0, `rgba(88, 39, 10, ${0.15 * strength})`);
+        rg.addColorStop(0.42, `rgba(139, 75, 24, ${0.06 * strength})`);
+        rg.addColorStop(1, "rgba(96, 47, 13, 0)");
+        context.fillStyle = rg;
+        context.beginPath();
+        context.ellipse(kx, ky, 42, 16, Math.sin(i) * 0.9, 0, Math.PI * 2);
+        context.fill();
+      }
+      context.restore();
+    }
+
+    function fitBoard() {
+      const size = canvasSize();
+      const wideLayout = isWideCanvas(size);
+      if (wideLayout) {
+        const fitPadding = isCompactLandscape(size) ? 0.98 : 0.92;
+        const scale = Math.min(size.width / WORLD_SIZE, size.height / WORLD_SIZE) * fitPadding;
+        transform.scale = Math.max(0.28, Math.min(1.45, scale));
+        transform.x = (size.width - WORLD_SIZE * transform.scale) / 2;
+        transform.y = (size.height - WORLD_SIZE * transform.scale) / 2;
+        userViewAdjusted = false;
+        return;
+      }
+      const focusCells = BOARD_SIZE <= 25 ? BOARD_SIZE + 1 : (perfMode ? 18 : 22);
+      const viewSpan = WORLD_CELL * focusCells;
+      const fitPadding = isCompactLandscape(size) ? 0.98 : 0.92;
+      const scale = Math.min(size.width / viewSpan, size.height / viewSpan) * fitPadding;
+      const target = history.length ? boardToWorld(history[history.length - 1][0], history[history.length - 1][1]) : { x: WORLD_SIZE / 2, y: WORLD_SIZE / 2 };
+      const minScale = isCompactLandscape(size) ? 0.26 : 0.36;
+      transform.scale = Math.max(minScale, Math.min(3.4, scale));
+      transform.x = size.width / 2 - target.x * transform.scale;
+      transform.y = size.height / 2 - target.y * transform.scale;
+      userViewAdjusted = false;
+      clampTransform();
+    }
+
+    function isWorldPointVisible(x, y, padding = 34) {
+      const size = canvasSize();
+      const sx = transform.x + x * transform.scale;
+      const sy = transform.y + y * transform.scale;
+      return sx >= padding && sx <= size.width - padding &&
+        sy >= padding && sy <= size.height - padding;
+    }
+
+    function centerLast(options = {}) {
+      const size = canvasSize();
+      const shown = visibleHistory();
+      const last = shown[shown.length - 1];
+      const target = last ? boardToWorld(last[0], last[1]) : { x: WORLD_SIZE / 2, y: WORLD_SIZE / 2 };
+      if (!options.force && !options.keepZoom && isWorldPointVisible(target.x, target.y)) {
+        clampTransform();
+        requestDraw();
+        return;
+      }
+      if (userViewAdjusted && !options.force && !options.keepZoom) {
+        clampTransform();
+        requestDraw();
+        return;
+      }
+      if (isWideCanvas(size) && !userViewAdjusted && !options.keepZoom) {
+        fitBoard();
+        requestDraw();
+        return;
+      }
+      centerOnWorldPoint(target.x, target.y);
+    }
+
+    function centerOnWorldPoint(x, y, options = {}) {
+      const size = canvasSize();
+      if (options.user) userViewAdjusted = true;
+      transform.x = size.width / 2 - x * transform.scale;
+      transform.y = size.height / 2 - y * transform.scale;
+      clampTransform();
+      requestDraw();
+    }
+
+    function clampAxis(pos, viewSize, contentSize) {
+      const pad = Math.min(90, Math.max(24, viewSize * 0.08));
+      if (contentSize <= viewSize) {
+        if (!userViewAdjusted) return (viewSize - contentSize) / 2;
+        return Math.min(viewSize - contentSize, Math.max(0, pos));
+      }
+      const min = viewSize - contentSize - pad;
+      const max = pad;
+      return Math.min(max, Math.max(min, pos));
+    }
+
+    function clampTransform() {
+      const size = canvasSize();
+      if (!size.width || !size.height || !Number.isFinite(transform.scale)) return;
+      transform.scale = Math.max(0.22, Math.min(3.4, transform.scale));
+      transform.x = clampAxis(transform.x, size.width, WORLD_SIZE * transform.scale);
+      transform.y = clampAxis(transform.y, size.height, WORLD_SIZE * transform.scale);
+    }
+
+    function zoomAt(factor, sx, sy, options = {}) {
+      const oldScale = transform.scale;
+      if (!oldScale || !Number.isFinite(oldScale)) return;
+      const nextScale = Math.max(0.22, Math.min(3.4, oldScale * factor));
+      const wx = (sx - transform.x) / oldScale;
+      const wy = (sy - transform.y) / oldScale;
+      transform.scale = nextScale;
+      transform.x = sx - wx * nextScale;
+      transform.y = sy - wy * nextScale;
+      if (options.user !== false) userViewAdjusted = true;
+      clampTransform();
+      requestDraw();
+    }
+
+    function panViewBy(dx, dy) {
+      transform.x += dx;
+      transform.y += dy;
+      userViewAdjusted = true;
+      clampTransform();
+      requestDraw();
+    }
+
+    function handleBoardKeydown(event) {
+      const key = event.key;
+      const size = canvasSize();
+      const panStep = Math.max(24, Math.min(96, Math.round(Math.min(size.width, size.height) * 0.1)));
+      let handled = true;
+      if (key === "ArrowLeft") {
+        panViewBy(-panStep, 0);
+      } else if (key === "ArrowRight") {
+        panViewBy(panStep, 0);
+      } else if (key === "ArrowUp") {
+        panViewBy(0, -panStep);
+      } else if (key === "ArrowDown") {
+        panViewBy(0, panStep);
+      } else if (key === "+" || key === "=") {
+        zoomAt(1.18, size.width / 2, size.height / 2, { user: true });
+      } else if (key === "-" || key === "_") {
+        zoomAt(1 / 1.18, size.width / 2, size.height / 2, { user: true });
+      } else if (key === "0") {
+        fitBoard();
+        requestDraw();
+      } else if (key === "Home") {
+        centerLast({ force: true, keepZoom: true });
+      } else {
+        handled = false;
+      }
+      if (handled) {
+        setKeyboardInputMode(true);
+        event.preventDefault();
+      }
+    }
+
+    function isEditingTarget(target) {
+      return Boolean(target && target.closest && target.closest("input, textarea, select, [contenteditable='true']"));
+    }
+
+    function startNewGameCommand() {
+      if (thinking) return;
+      resetState();
+      focusBoard();
+    }
+
+    function fitBoardCommand() {
+      fitBoard();
+      requestDraw();
+      focusBoard();
+    }
+
+    function centerBoardCommand() {
+      centerLast({ keepZoom: true });
+      focusBoard();
+    }
+
+    function isCompactInspectorLayout() {
+      return window.innerWidth <= 760 || (window.innerWidth > window.innerHeight && window.innerHeight <= 520);
+    }
+
+    function shouldDismissInspectorFromBoard(event) {
+      if (!settings.inspectorOpen || !isCompactInspectorLayout()) return false;
+      const panelRect = inspectorPanel.getBoundingClientRect();
+      return event.clientY < panelRect.top - 2;
+    }
+
+    function undoPairCommand() {
+      if (thinking) return;
+      if (history.length) undoMove();
+      if (history.length && history[history.length - 1][2] === BLACK) undoMove();
+      winner = null;
+      hideVictoryBanner();
+      setStatus("\u9ed1\u68cb\u56de\u5408");
+      setStats("\u5df2\u6094\u68cb");
+      updateUiState();
+      updateStatsPanel();
+      saveSnapshot();
+      requestDraw();
+      focusBoard();
+    }
+
+    function handleGlobalKeydown(event) {
+      if (event.key === "Tab") {
+        setKeyboardInputMode(true);
+        return;
+      }
+      if (event.defaultPrevented || event.ctrlKey || event.metaKey || event.altKey || isEditingTarget(event.target)) return;
+      const key = event.key.length === 1 ? event.key.toLowerCase() : event.key;
+      let handled = true;
+      if (key === "Escape") {
+        if (settings.inspectorOpen) setInspectorOpen(false);
+        else if (mode === "review") switchMode("play");
+        else handled = false;
+      } else if (key === "m") {
+        setInspectorOpen(!settings.inspectorOpen);
+      } else if (key === "n") {
+        startNewGameCommand();
+      } else if (key === "u") {
+        undoPairCommand();
+      } else if (key === "f") {
+        fitBoardCommand();
+      } else if (key === "c") {
+        centerBoardCommand();
+      } else {
+        handled = false;
+      }
+      if (handled) {
+        setKeyboardInputMode(true);
+        event.preventDefault();
+      }
+    }
+
+    function focusBoard() {
+      try {
+        canvas.focus({ preventScroll: true });
+      } catch (err) {
+        canvas.focus();
+      }
+    }
+
+    function setKeyboardInputMode(enabled) {
+      keyboardInputMode = Boolean(enabled);
+      document.documentElement.classList.toggle("keyboard-input", keyboardInputMode);
+    }
+
+    function wheelZoomFactor(deltaY) {
+      const amount = Math.max(-700, Math.min(700, -Number(deltaY || 0)));
+      return Math.exp(amount / 900);
+    }
+
+    function boardToWorld(x, y) {
+      return { x: WORLD_MARGIN + x * WORLD_CELL, y: WORLD_MARGIN + y * WORLD_CELL };
+    }
+
+    function boardToScreen(x, y) {
+      const rect = canvas.getBoundingClientRect();
+      const p = boardToWorld(x, y);
+      return {
+        clientX: rect.left + transform.x + p.x * transform.scale,
+        clientY: rect.top + transform.y + p.y * transform.scale
+      };
+    }
+
+    function screenToBoard(clientX, clientY) {
+      if (!transform.scale) return null;
+      const rect = canvas.getBoundingClientRect();
+      const sx = clientX - rect.left;
+      const sy = clientY - rect.top;
+      const wx = (sx - transform.x) / transform.scale;
+      const wy = (sy - transform.y) / transform.scale;
+      const x = Math.round((wx - WORLD_MARGIN) / WORLD_CELL);
+      const y = Math.round((wy - WORLD_MARGIN) / WORLD_CELL);
+      const snap = boardToWorld(x, y);
+      const dist = Math.hypot(wx - snap.x, wy - snap.y);
+      if (x < 0 || y < 0 || x >= BOARD_SIZE || y >= BOARD_SIZE || dist > HIT_RADIUS) return null;
+      return { x, y };
+    }
+
+    function installDebugApi() {
+      if (!LAUNCH_PARAMS.has("qa")) return;
+      window.__gomokuDebug = {
+        state() {
+          const rect = canvas.getBoundingClientRect();
+          return {
+            mode,
+            history: history.map(item => item.slice()),
+            winner,
+            winLine: winLine.map(item => item.slice()),
+            thinking,
+            reviewIndex,
+            transform: { ...transform },
+            userViewAdjusted,
+            inspectorOpen: settings.inspectorOpen,
+            pixelRatio,
+            drawPerf: { ...drawPerf },
+            boardLayerReady: Boolean(boardLayer),
+            boardLayerRatio,
+            maxPixelRatio,
+            stoneSpriteVersion: STONE_SPRITE_VERSION,
+            canvasRect: { left: rect.left, top: rect.top, width: rect.width, height: rect.height },
+            canvasBuffer: { width: canvas.width, height: canvas.height },
+            world: { boardSize: BOARD_SIZE, worldCell: WORLD_CELL, worldMargin: WORLD_MARGIN, worldSize: WORLD_SIZE, hitRadius: HIT_RADIUS },
+            appVersion: APP_VERSION,
+            statusText: statusText.textContent,
+            statsText: statsText.textContent,
+            trainingTitle: trainingTitle.textContent,
+            trainingObjective: trainingObjective.textContent,
+            reviewTitle: reviewTitle.textContent,
+            reviewSubtitle: reviewSubtitle.textContent,
+            panelToggleText: panelToggleBtn.textContent,
+            explainTitle: explainTitle.textContent,
+            explainReason: explainReason.textContent,
+            explainHidden: explainCard.hidden,
+            victoryVisible: !victoryBanner.hidden,
+            victoryTitle: victoryTitle.textContent,
+            victorySubtitle: victorySubtitle.textContent
+          };
+        },
+        screenToBoard,
+        boardToScreen,
+        reset() { resetState(); },
+        fit() { fitBoard(); requestDraw(); },
+        setAiDelay(ms) {
+          qaAiDelayMs = Math.max(0, Math.min(3000, Number(ms) || 0));
+        },
+        load(moves, options = {}) {
+          grid = Array.from({ length: BOARD_SIZE }, () => Array(BOARD_SIZE).fill(EMPTY));
+          history = [];
+          moveMeta = [];
+          boardHash = 0;
+          winner = null;
+          winLine = [];
+          thinking = false;
+          hideVictoryBanner();
+          mode = options.mode === "train" || options.mode === "review" ? options.mode : "play";
+          reviewIndex = 0;
+          lastExplain = null;
+          aiStats = {};
+          for (const item of moves || []) {
+            const x = item[0], y = item[1], color = item[2];
+            if (x >= 0 && y >= 0 && x < BOARD_SIZE && y < BOARD_SIZE &&
+                (color === BLACK || color === WHITE) && grid[y][x] === EMPTY) {
+              grid[y][x] = color;
+              history.push([x, y, color]);
+              boardHash = (boardHash ^ hashStone(x, y, color)) >>> 0;
+              moveMeta.push({ source: "qa" });
+            }
+          }
+          setThinking(false);
+          setStatus("黑棋回合");
+          setStats("QA 中盘局面");
+          setInspectorOpen(false, { skipSave: true });
+          updateModeUi();
+          updateStatsPanel();
+          fitBoard();
+          if (history.length) centerLast();
+          requestDraw();
+        }
+      };
+    }
+
+    function requestDraw() {
+      if (drawQueued) return;
+      drawQueued = true;
+      requestAnimationFrame(() => {
+        drawQueued = false;
+        draw();
+      });
+    }
+
+    function draw() {
+      const drawStarted = performance.now();
+      const size = canvasSize();
+      ctx.save();
+      ctx.setTransform(pixelRatio, 0, 0, pixelRatio, 0, 0);
+      ctx.clearRect(0, 0, size.width, size.height);
+      drawFeltBackdrop(size);
+
+      ctx.translate(transform.x, transform.y);
+      ctx.scale(transform.scale, transform.scale);
+
+      try {
+        const layer = ensureBoardLayer();
+        ctx.drawImage(layer, 0, 0, WORLD_SIZE, WORLD_SIZE);
+      } catch (err) {
+        boardLayer = null;
+        drawBoardSurface(ctx);
+      }
+      drawPieces();
+      drawTapPreview();
+      drawWinLine();
+      drawLastMarker();
+      ctx.restore();
+      const elapsed = performance.now() - drawStarted;
+      drawPerf.count += 1;
+      drawPerf.lastMs = elapsed;
+      drawPerf.maxMs = Math.max(drawPerf.maxMs, elapsed);
+    }
+
+    function drawFeltBackdrop(size) {
+      const bg = ctx.createLinearGradient(0, 0, size.width, size.height);
+      bg.addColorStop(0, "#14271d");
+      bg.addColorStop(0.55, "#0f2017");
+      bg.addColorStop(1, "#08120d");
+      ctx.fillStyle = bg;
+      ctx.fillRect(0, 0, size.width, size.height);
+
+      const spotlight = ctx.createRadialGradient(size.width * 0.5, size.height * 0.38, 20, size.width * 0.5, size.height * 0.46, Math.max(size.width, size.height) * 0.62);
+      spotlight.addColorStop(0, "rgba(255, 227, 159, 0.16)");
+      spotlight.addColorStop(0.45, "rgba(47, 122, 79, 0.10)");
+      spotlight.addColorStop(1, "rgba(0, 0, 0, 0.38)");
+      ctx.fillStyle = spotlight;
+      ctx.fillRect(0, 0, size.width, size.height);
+
+      ctx.save();
+      ctx.globalAlpha = 0.18;
+      ctx.strokeStyle = "rgba(255, 255, 255, 0.05)";
+      ctx.lineWidth = 1;
+      const rows = Math.min(56, Math.max(18, Math.floor(size.height / 13)));
+      for (let i = 0; i < rows; i += 1) {
+        const y = (i / Math.max(1, rows - 1)) * size.height;
+        ctx.beginPath();
+        ctx.moveTo(0, y);
+        ctx.bezierCurveTo(size.width * 0.28, y + Math.sin(i * 1.1) * 8, size.width * 0.72, y - Math.cos(i * 0.8) * 7, size.width, y + Math.sin(i) * 4);
+        ctx.stroke();
+      }
+      ctx.restore();
+    }
+
+    function drawStarPoints(context) {
+      const edge = BOARD_SIZE >= 19 ? 4 : 3;
+      const center = Math.floor((BOARD_SIZE - 1) / 2);
+      const points = [edge, center, BOARD_SIZE - 1 - edge];
+      for (const x of points) {
+        for (const y of points) {
+          const p = boardToWorld(x, y);
+          context.fillStyle = "rgba(48, 28, 10, 0.3)";
+          context.beginPath();
+          context.arc(p.x, p.y, 8.4, 0, Math.PI * 2);
+          context.fill();
+          context.fillStyle = "rgba(24, 14, 5, 0.95)";
+          context.beginPath();
+          context.arc(p.x, p.y, 4.75, 0, Math.PI * 2);
+          context.fill();
+        }
+      }
+    }
+
+    function fileLabel(index) {
+      let n = index;
+      let label = "";
+      while (n >= 0) {
+        label = String.fromCharCode(65 + (n % 26)) + label;
+        n = Math.floor(n / 26) - 1;
+      }
+      return label;
+    }
+
+    function drawBoardLabels(context) {
+      context.save();
+      context.fillStyle = "rgba(35, 19, 7, 0.82)";
+      context.font = "800 13.4px ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif";
+      context.textAlign = "center";
+      context.textBaseline = "middle";
+      for (let i = 0; i < BOARD_SIZE; i += 1) {
+        const centerIndex = Math.floor((BOARD_SIZE - 1) / 2);
+        if (i !== 0 && i !== BOARD_SIZE - 1 && i !== centerIndex && (i + 1) % 5 !== 0) continue;
+        const p = WORLD_MARGIN + i * WORLD_CELL;
+        context.fillText(fileLabel(i), p, WORLD_MARGIN - 18);
+        context.fillText(String(i + 1), WORLD_MARGIN - 18, p);
+      }
+      context.restore();
+    }
+
+    function drawPieces() {
+      const shown = visibleHistory();
+      for (const [x, y, color] of shown) {
+        const p = boardToWorld(x, y);
+        const r = WORLD_CELL * 0.45;
+        ctx.drawImage(getStoneSprite(color), p.x - r * 1.25, p.y - r * 1.25, r * 2.5, r * 2.5);
+      }
+      drawMoveNumbers(shown);
+    }
+
+    function getStoneSprite(color) {
+      const key = color + ":" + STONE_SPRITE_VERSION;
+      const cached = stoneSprites.get(key);
+      if (cached) return cached;
+      const size = 192;
+      const sprite = document.createElement("canvas");
+      sprite.width = size;
+      sprite.height = size;
+      const sctx = sprite.getContext("2d");
+      sctx.imageSmoothingEnabled = true;
+      sctx.imageSmoothingQuality = "high";
+      const c = size / 2;
+      const r = 77;
+      sctx.fillStyle = "rgba(18, 9, 4, 0.42)";
+      sctx.beginPath();
+      sctx.ellipse(c + 10, c + 14, r * 1.02, r * 0.82, 0.16, 0, Math.PI * 2);
+      sctx.fill();
+
+      const g = sctx.createRadialGradient(c - 22, c - 24, 5, c, c, r);
+      if (color === BLACK) {
+        g.addColorStop(0, "#f8fbff");
+        g.addColorStop(0.12, "#7e8794");
+        g.addColorStop(0.38, "#161d27");
+        g.addColorStop(0.76, "#05070b");
+        g.addColorStop(1, "#000000");
+      } else {
+        g.addColorStop(0, "#ffffff");
+        g.addColorStop(0.2, "#fffdf7");
+        g.addColorStop(0.6, "#eee5d4");
+        g.addColorStop(0.88, "#c9b48c");
+        g.addColorStop(1, "#847258");
+      }
+      sctx.fillStyle = g;
+      sctx.beginPath();
+      sctx.arc(c, c, r, 0, Math.PI * 2);
+      sctx.fill();
+
+      sctx.strokeStyle = color === BLACK ? "rgba(255,255,255,0.35)" : "rgba(62,43,22,0.64)";
+      sctx.lineWidth = 8.5;
+      sctx.beginPath();
+      sctx.arc(c, c, r - 1, 0, Math.PI * 2);
+      sctx.stroke();
+      sctx.strokeStyle = color === BLACK ? "rgba(0,0,0,0.92)" : "rgba(255,255,255,0.92)";
+      sctx.lineWidth = 4.4;
+      sctx.beginPath();
+      sctx.arc(c, c, r + 1, 0, Math.PI * 2);
+      sctx.stroke();
+
+      const shine = sctx.createRadialGradient(c - 24, c - 26, 1, c - 24, c - 26, 34);
+      shine.addColorStop(0, color === BLACK ? "rgba(255,255,255,0.42)" : "rgba(255,255,255,0.9)");
+      shine.addColorStop(1, "rgba(255,255,255,0)");
+      sctx.fillStyle = shine;
+      sctx.beginPath();
+      sctx.arc(c - 24, c - 26, 34, 0, Math.PI * 2);
+      sctx.fill();
+
+      sctx.strokeStyle = color === BLACK ? "rgba(255,255,255,0.08)" : "rgba(94,70,36,0.12)";
+      sctx.lineWidth = 1.2;
+      for (let i = 0; i < 4; i += 1) {
+        sctx.beginPath();
+        sctx.arc(c, c, r - 12 - i * 8, Math.PI * (0.04 + i * 0.06), Math.PI * (1.55 + i * 0.03));
+        sctx.stroke();
+      }
+      stoneSprites.set(key, sprite);
+      return sprite;
+    }
+
+    function drawMoveNumbers(shown) {
+      if (transform.scale < 0.42) return;
+      const start = Math.max(0, shown.length - 12);
+      ctx.save();
+      ctx.textAlign = "center";
+      ctx.textBaseline = "middle";
+      ctx.font = "850 13.2px ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif";
+      for (let i = start; i < shown.length; i += 1) {
+        const [x, y, color] = shown[i];
+        const p = boardToWorld(x, y);
+        ctx.lineWidth = 4.8;
+        ctx.strokeStyle = color === BLACK ? "rgba(0,0,0,0.86)" : "rgba(255,255,255,0.92)";
+        ctx.strokeText(String(i + 1), p.x, p.y + 0.4);
+        ctx.fillStyle = color === BLACK ? "rgba(255,255,255,0.92)" : "rgba(18,14,10,0.84)";
+        ctx.fillText(String(i + 1), p.x, p.y + 0.4);
+      }
+      ctx.restore();
+    }
+
+    function drawTapPreview() {
+      const candidate = lastTapCandidate || hoverCandidate;
+      if (!candidate || thinking || winner || mode === "review" || (drag && drag.moved)) return;
+      if (!isValid(candidate.x, candidate.y)) return;
+      const p = boardToWorld(candidate.x, candidate.y);
+      const r = WORLD_CELL * 0.46;
+      ctx.save();
+      ctx.fillStyle = mode === "train" ? "rgba(255, 238, 182, 0.22)" : "rgba(255, 238, 182, 0.16)";
+      ctx.strokeStyle = "rgba(67, 31, 11, 0.74)";
+      ctx.lineWidth = 4.4;
+      ctx.beginPath();
+      ctx.arc(p.x, p.y, r, 0, Math.PI * 2);
+      ctx.stroke();
+      ctx.strokeStyle = mode === "train" ? "rgba(219, 95, 38, 0.9)" : "rgba(198, 103, 38, 0.78)";
+      ctx.lineWidth = 2.4;
+      ctx.beginPath();
+      ctx.arc(p.x, p.y, r, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.stroke();
+      drawHoverGuide(p.x, p.y);
+      ctx.restore();
+    }
+
+    function drawHoverGuide(x, y) {
+      ctx.save();
+      ctx.strokeStyle = "rgba(85, 39, 17, 0.44)";
+      ctx.lineWidth = 1.4;
+      ctx.setLineDash([4, 6]);
+      ctx.beginPath();
+      ctx.moveTo(x - WORLD_CELL * 0.72, y);
+      ctx.lineTo(x + WORLD_CELL * 0.72, y);
+      ctx.moveTo(x, y - WORLD_CELL * 0.72);
+      ctx.lineTo(x, y + WORLD_CELL * 0.72);
+      ctx.stroke();
+      ctx.restore();
+    }
+
+    function drawWinLine() {
+      if (!winLine || winLine.length < 5) return;
+      const first = boardToWorld(winLine[0][0], winLine[0][1]);
+      const last = boardToWorld(winLine[winLine.length - 1][0], winLine[winLine.length - 1][1]);
+      ctx.save();
+      ctx.lineCap = "round";
+      ctx.lineJoin = "round";
+      ctx.shadowColor = "rgba(255, 216, 91, 0.62)";
+      ctx.shadowBlur = 18;
+      ctx.strokeStyle = "rgba(255, 210, 75, 0.52)";
+      ctx.lineWidth = WORLD_CELL * 0.34;
+      ctx.beginPath();
+      ctx.moveTo(first.x, first.y);
+      ctx.lineTo(last.x, last.y);
+      ctx.stroke();
+      ctx.shadowBlur = 0;
+      ctx.strokeStyle = "rgba(255, 247, 196, 0.92)";
+      ctx.lineWidth = Math.max(2.8, 2.2 / Math.max(0.1, transform.scale));
+      ctx.beginPath();
+      ctx.moveTo(first.x, first.y);
+      ctx.lineTo(last.x, last.y);
+      ctx.stroke();
+      for (const [x, y] of winLine) {
+        const p = boardToWorld(x, y);
+        const halo = ctx.createRadialGradient(p.x, p.y, WORLD_CELL * 0.24, p.x, p.y, WORLD_CELL * 0.72);
+        halo.addColorStop(0, "rgba(255, 246, 190, 0.42)");
+        halo.addColorStop(1, "rgba(255, 199, 58, 0)");
+        ctx.fillStyle = halo;
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, WORLD_CELL * 0.72, 0, Math.PI * 2);
+        ctx.fill();
+      }
+      ctx.restore();
+    }
+
+    function drawLastMarker() {
+      const shown = visibleHistory();
+      const last = shown[shown.length - 1];
+      if (!last) return;
+      const p = boardToWorld(last[0], last[1]);
+      ctx.save();
+      const markerLine = Math.max(3, 2.8 / Math.max(0.1, transform.scale));
+      const r = WORLD_CELL * 0.51;
+      const tick = WORLD_CELL * 0.19;
+      const drawMarkerPath = () => {
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, r, 0, Math.PI * 2);
+        for (const sx of [-1, 1]) {
+          for (const sy of [-1, 1]) {
+            const x = p.x + sx * r * 0.74;
+            const y = p.y + sy * r * 0.74;
+            ctx.moveTo(x - sx * tick, y);
+            ctx.lineTo(x, y);
+            ctx.lineTo(x, y - sy * tick);
+          }
+        }
+      };
+      ctx.strokeStyle = "rgba(44, 23, 8, 0.9)";
+      ctx.lineWidth = markerLine + Math.max(2.2, 1.7 / Math.max(0.1, transform.scale));
+      drawMarkerPath();
+      ctx.stroke();
+      ctx.strokeStyle = "rgba(255, 224, 94, 1)";
+      ctx.lineWidth = markerLine;
+      drawMarkerPath();
+      ctx.stroke();
+      ctx.fillStyle = "rgba(255, 224, 94, 0.95)";
+      ctx.strokeStyle = "rgba(44, 23, 8, 0.88)";
+      ctx.lineWidth = Math.max(1.8, 1.4 / Math.max(0.1, transform.scale));
+      ctx.beginPath();
+      ctx.arc(p.x, p.y, WORLD_CELL * 0.16, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.stroke();
+      ctx.restore();
+    }
+
+    function roundRect(context, x, y, width, height, radius) {
+      context.beginPath();
+      context.moveTo(x + radius, y);
+      context.arcTo(x + width, y, x + width, y + height, radius);
+      context.arcTo(x + width, y + height, x, y + height, radius);
+      context.arcTo(x, y + height, x, y, radius);
+      context.arcTo(x, y, x + width, y, radius);
+      context.closePath();
+    }
+
+    function placeMove(x, y, color) {
+      if (!isValid(x, y)) return false;
+      grid[y][x] = color;
+      history.push([x, y, color]);
+      boardHash = (boardHash ^ hashStone(x, y, color)) >>> 0;
+      return true;
+    }
+
+    function undoMove() {
+      const mv = history.pop();
+      if (!mv) return;
+      grid[mv[1]][mv[0]] = EMPTY;
+      boardHash = (boardHash ^ hashStone(mv[0], mv[1], mv[2])) >>> 0;
+      trimMeta();
+    }
+
+    function checkWin(x, y, color) {
+      return getWinLine(x, y, color).length >= 5;
+    }
+
+    function getWinLine(x, y, color) {
+      for (const [dx, dy] of [[1, 0], [0, 1], [1, 1], [1, -1]]) {
+        const line = [[x, y]];
+        let nx = x + dx;
+        let ny = y + dy;
+        while (nx >= 0 && ny >= 0 && nx < BOARD_SIZE && ny < BOARD_SIZE && grid[ny][nx] === color) {
+          line.push([nx, ny]);
+          nx += dx;
+          ny += dy;
+        }
+        nx = x - dx;
+        ny = y - dy;
+        while (nx >= 0 && ny >= 0 && nx < BOARD_SIZE && ny < BOARD_SIZE && grid[ny][nx] === color) {
+          line.unshift([nx, ny]);
+          nx -= dx;
+          ny -= dy;
+        }
+        if (line.length >= 5) {
+          const placedIndex = line.findIndex(item => item[0] === x && item[1] === y);
+          const start = Math.max(0, Math.min(placedIndex - 2, line.length - 5));
+          return line.slice(start, start + 5);
+        }
+      }
+      return [];
+    }
+
+    function countDir(x, y, dx, dy, color) {
+      let c = 0;
+      let nx = x + dx;
+      let ny = y + dy;
+      while (nx >= 0 && ny >= 0 && nx < BOARD_SIZE && ny < BOARD_SIZE && grid[ny][nx] === color) {
+        c += 1;
+        nx += dx;
+        ny += dy;
+      }
+      return c;
+    }
+
+    function countLineFast(x, y, dx, dy, color) {
+      let count = 1;
+      let open = 0;
+      let nx = x + dx;
+      let ny = y + dy;
+      while (nx >= 0 && ny >= 0 && nx < BOARD_SIZE && ny < BOARD_SIZE && grid[ny][nx] === color) {
+        count += 1;
+        nx += dx;
+        ny += dy;
+      }
+      if (nx >= 0 && ny >= 0 && nx < BOARD_SIZE && ny < BOARD_SIZE && grid[ny][nx] === EMPTY) open += 1;
+      nx = x - dx;
+      ny = y - dy;
+      while (nx >= 0 && ny >= 0 && nx < BOARD_SIZE && ny < BOARD_SIZE && grid[ny][nx] === color) {
+        count += 1;
+        nx -= dx;
+        ny -= dy;
+      }
+      if (nx >= 0 && ny >= 0 && nx < BOARD_SIZE && ny < BOARD_SIZE && grid[ny][nx] === EMPTY) open += 1;
+      return [Math.min(count, 5), open];
+    }
+
+    function directionHits(x, y, dx, dy, color) {
+      const radius = 5;
+      const center = radius;
+      let line = "";
+      for (let step = -radius; step <= radius; step += 1) {
+        const nx = x + dx * step;
+        const ny = y + dy * step;
+        if (nx < 0 || ny < 0 || nx >= BOARD_SIZE || ny >= BOARD_SIZE) {
+          line += "2";
+        } else {
+          const v = grid[ny][nx];
+          line += v === EMPTY ? "0" : v === color ? "1" : "2";
+        }
+      }
+      const hits = { five: 0, live4: 0, rush4: 0, live3: 0, sleep3: 0 };
+      for (const [pat, kind] of PATTERNS) {
+        const len = pat.length;
+        for (let start = 0; start + len <= line.length; start += 1) {
+          if (start <= center && center < start + len && line.slice(start, start + len) === pat) {
+            hits[kind] = 1;
+            break;
+          }
+        }
+        if (hits.five) break;
+      }
+      return hits;
+    }
+
+    function threatProfile(x, y, color) {
+      if (!isValid(x, y)) return { rank: 0, five: 0, live4: 0, rush4: 0, live3: 0, sleep3: 0 };
+      grid[y][x] = color;
+      let five = 0, live4 = 0, rush4 = 0, live3 = 0, sleep3 = 0;
+      for (const [dx, dy] of [[1, 0], [0, 1], [1, 1], [1, -1]]) {
+        const hits = directionHits(x, y, dx, dy, color);
+        five += hits.five;
+        live4 += hits.live4;
+        rush4 += hits.rush4;
+        live3 += hits.live3;
+        sleep3 += hits.sleep3;
+      }
+      grid[y][x] = EMPTY;
+      let rank = 0;
+      if (five) rank = RANK.FIVE;
+      else if (live4) rank = RANK.LIVE4;
+      else if (rush4 >= 2) rank = RANK.DOUBLE4;
+      else if (rush4 >= 1 && live3 >= 1) rank = RANK.FOUR3;
+      else if (live3 >= 2) rank = RANK.DOUBLE3;
+      else if (rush4 >= 1) rank = RANK.RUSH4;
+      else if (live3 >= 1) rank = RANK.LIVE3;
+      return { rank, five, live4, rush4, live3, sleep3 };
+    }
+
+    function profileScore(profile) {
+      const rank = profile ? profile.rank : 0;
+      if (rank >= RANK.FIVE) return WIN;
+      if (rank >= RANK.LIVE4) return 1000000;
+      if (rank >= RANK.DOUBLE4) return 900000;
+      if (rank >= RANK.FOUR3) return 760000;
+      if (rank >= RANK.DOUBLE3) return 260000;
+      if (rank >= RANK.RUSH4) return 85000;
+      if (rank >= RANK.LIVE3) return 18000;
+      return 0;
+    }
+
+    function quickScore(x, y, color) {
+      if (!isValid(x, y)) return 0;
+      grid[y][x] = color;
+      let total = 0;
+      for (const [dx, dy] of [[1, 0], [0, 1], [1, 1], [1, -1]]) {
+        const [c, o] = countLineFast(x, y, dx, dy, color);
+        if (c >= 5) total += 1000000;
+        else if (c === 4 && o === 2) total += 120000;
+        else if (c === 4 && o === 1) total += 18000;
+        else if (c === 3 && o === 2) total += 7000;
+        else if (c === 3 && o === 1) total += 900;
+        else if (c === 2 && o === 2) total += 260;
+        else if (c === 2 && o === 1) total += 70;
+      }
+      grid[y][x] = EMPTY;
+      return total;
+    }
+
+    function neighbors() {
+      if (!history.length) return [[Math.floor(BOARD_SIZE / 2), Math.floor(BOARD_SIZE / 2)]];
+      const set = new Set();
+      for (const [x, y] of history) {
+        for (let dy = -2; dy <= 2; dy += 1) {
+          for (let dx = -2; dx <= 2; dx += 1) {
+            if (!dx && !dy) continue;
+            const nx = x + dx;
+            const ny = y + dy;
+            if (isValid(nx, ny)) set.add(nx + "," + ny);
+          }
+        }
+      }
+      return Array.from(set, s => s.split(",").map(Number));
+    }
+
+    function moveScore(x, y, color) {
+      const opp = other(color);
+      const selfProf = threatProfile(x, y, color);
+      const oppProf = threatProfile(x, y, opp);
+      const center = Math.floor(BOARD_SIZE / 2);
+      const centerPull = BOARD_SIZE - Math.abs(x - center) - Math.abs(y - center);
+      const last = history[history.length - 1];
+      const lastPull = last ? Math.max(0, 10 - Math.abs(x - last[0]) - Math.abs(y - last[1])) : 0;
+      return selfProf.rank * 2200000 + oppProf.rank * 2350000 +
+        quickScore(x, y, color) * 4.5 + quickScore(x, y, opp) * 3.8 +
+        centerPull * 28 + lastPull * 48;
+    }
+
+    function candidates(color, width) {
+      const all = neighbors();
+      const scored = all.map(([x, y]) => [moveScore(x, y, color), x, y])
+        .sort((a, b) => b[0] - a[0]);
+      const protectedMoves = [];
+      const opp = other(color);
+      for (const [, x, y] of scored) {
+        if (threatProfile(x, y, color).rank >= RANK.LIVE3 || threatProfile(x, y, opp).rank >= RANK.LIVE3) {
+          protectedMoves.push([x, y]);
+        }
+      }
+      const out = [];
+      const seen = new Set();
+      for (const mv of protectedMoves.concat(scored.slice(0, width).map(item => [item[1], item[2]]))) {
+        const key = mv[0] + "," + mv[1];
+        if (!seen.has(key)) {
+          seen.add(key);
+          out.push(mv);
+        }
+        if (out.length >= width + 10) break;
+      }
+      return out;
+    }
+
+    function immediateWin(color) {
+      const all = neighbors().sort((a, b) => quickScore(b[0], b[1], color) - quickScore(a[0], a[1], color));
+      for (const [x, y] of all) {
+        placeMove(x, y, color);
+        const win = checkWin(x, y, color);
+        undoMove();
+        if (win) return [x, y];
+      }
+      return null;
+    }
+
+    function bestForcing(color, minRank) {
+      let best = null;
+      let bestProfile = null;
+      let bestScore = -INF;
+      const opp = other(color);
+      for (const [x, y] of neighbors()) {
+        const prof = threatProfile(x, y, color);
+        if (prof.rank < minRank) continue;
+        const score = prof.rank * 1000000 + quickScore(x, y, color) * 4 + quickScore(x, y, opp) * 2;
+        if (score > bestScore) {
+          bestScore = score;
+          best = [x, y];
+          bestProfile = prof;
+        }
+      }
+      return [best, bestProfile];
+    }
+
+    function candidateSafety(move, color) {
+      const opp = other(color);
+      placeMove(move[0], move[1], color);
+      let penalty = 0;
+      if (immediateWin(opp)) penalty += WIN * 1.2;
+      const [, oppForce] = bestForcing(opp, RANK.FOUR3);
+      const [, oppPressure] = bestForcing(opp, RANK.DOUBLE3);
+      penalty += profileScore(oppForce) * 1.25;
+      penalty += profileScore(oppPressure) * 0.9;
+      undoMove();
+      return penalty;
+    }
+
+    function evaluate(color) {
+      const opp = other(color);
+      let self = 0;
+      let enemy = 0;
+      const all = neighbors();
+      for (const [x, y] of all) {
+        const selfProf = threatProfile(x, y, color);
+        const enemyProf = threatProfile(x, y, opp);
+        self += profileScore(selfProf) * 0.56 + quickScore(x, y, color) * 1.45;
+        enemy += profileScore(enemyProf) * 0.82 + quickScore(x, y, opp) * 2.05;
+        if (enemyProf.rank >= RANK.FOUR3) enemy += 520000;
+        if (selfProf.rank >= RANK.FOUR3) self += 360000;
+      }
+      return self - enemy;
+    }
+
+    function terminalScore(colorToMove) {
+      const last = history[history.length - 1];
+      if (!last) return null;
+      if (!checkWin(last[0], last[1], last[2])) return null;
+      return last[2] === colorToMove ? WIN : -WIN;
+    }
+
+    function negamax(depth, alpha, beta, color, deadline, width, reduceAfter) {
+      aiStats.nodes += 1;
+      if ((aiStats.nodes & 127) === 0 && performance.now() > deadline) throw new Error("timeout");
+      const term = terminalScore(color);
+      if (term !== null) return term;
+      if (depth <= 0) return evaluate(color);
+      const key = color + ":" + depth + ":" + boardHash;
+      const cached = tt.get(key);
+      if (cached !== undefined) {
+        aiStats.cacheHits += 1;
+        return cached;
+      }
+
+      const win = immediateWin(color);
+      if (win) return WIN - (10 - depth);
+
+      const moves = candidates(color, Math.max(7, width - (depth >= 3 ? 3 : 0)));
+      let best = -INF;
+      const opp = other(color);
+      let searched = 0;
+      let cut = false;
+      for (const mv of moves) {
+        const rank = Math.max(threatProfile(mv[0], mv[1], color).rank, threatProfile(mv[0], mv[1], opp).rank);
+        const reduction = searched >= reduceAfter && depth >= 3 && rank < RANK.LIVE3 ? 1 : 0;
+        placeMove(mv[0], mv[1], color);
+        const val = -negamax(depth - 1 - reduction, -beta, -alpha, opp, deadline, width, reduceAfter);
+        undoMove();
+        searched += 1;
+        if (val > best) best = val;
+        if (best > alpha) alpha = best;
+        if (alpha >= beta) {
+          cut = true;
+          break;
+        }
+      }
+      if (!cut) {
+        if (tt.size > 30000) tt.clear();
+        tt.set(key, best);
+      }
+      return best;
+    }
+
+    function openingMove(color) {
+      if (history.length !== 1) return null;
+      const [x, y] = history[0];
+      const offsets = [[1, 1], [1, 0], [0, 1], [-1, 1], [1, -1], [-1, 0], [0, -1], [-1, -1], [2, 0], [0, 2]];
+      for (const [dx, dy] of offsets) {
+        const nx = x + dx;
+        const ny = y + dy;
+        if (isValid(nx, ny)) return [nx, ny];
+      }
+      return null;
+    }
+
+    function localAiMove(color) {
+      const difficulty = difficultySelect.value;
+      const level = LEVELS[difficulty] || LEVELS.legend;
+      const start = performance.now();
+      const deadline = start + level.time;
+      tt = new Map();
+      aiStats = { nodes: 0, cacheHits: 0, depth: 0, gate: "", elapsed: 0, difficulty: level.label };
+      const opp = other(color);
+
+      if (!history.length) return [Math.floor(BOARD_SIZE / 2), Math.floor(BOARD_SIZE / 2)];
+
+      const win = immediateWin(color);
+      if (win) {
+        aiStats.gate = "win";
+        aiStats.elapsed = performance.now() - start;
+        return win;
+      }
+      const block = immediateWin(opp);
+      if (block) {
+        aiStats.gate = "block";
+        aiStats.elapsed = performance.now() - start;
+        return block;
+      }
+
+      const book = openingMove(color);
+      if (book) {
+        aiStats.gate = "book";
+        aiStats.elapsed = performance.now() - start;
+        return book;
+      }
+
+      const [ownForce, ownForceProfile] = bestForcing(color, RANK.FOUR3);
+      const [oppForce, oppForceProfile] = bestForcing(opp, RANK.FOUR3);
+      if (ownForce && (!oppForceProfile || ownForceProfile.rank >= oppForceProfile.rank || ownForceProfile.rank >= RANK.LIVE4)) {
+        aiStats.gate = "force";
+        aiStats.elapsed = performance.now() - start;
+        return ownForce;
+      }
+      if (oppForce) {
+        aiStats.gate = "defense";
+        aiStats.elapsed = performance.now() - start;
+        return oppForce;
+      }
+      if (ownForce) {
+        aiStats.gate = "force";
+        aiStats.elapsed = performance.now() - start;
+        return ownForce;
+      }
+
+      let [ownPressure] = bestForcing(color, RANK.DOUBLE3);
+      let [oppPressure] = bestForcing(opp, RANK.DOUBLE3);
+      if (ownPressure && !oppPressure) {
+        aiStats.gate = "pressure";
+        aiStats.elapsed = performance.now() - start;
+        return ownPressure;
+      }
+      if (oppPressure) {
+        aiStats.gate = "anti-pressure";
+        aiStats.elapsed = performance.now() - start;
+        return oppPressure;
+      }
+
+      let bestMove = candidates(color, level.width)[0];
+      let bestScore = -INF;
+      for (let depth = 1; depth <= level.depth; depth += 1) {
+        try {
+          const moves = candidates(color, level.width + (depth >= 4 ? 1 : 0));
+          let depthBest = bestMove;
+          let depthScore = -INF;
+          let alpha = -INF;
+          const beta = INF;
+          for (const mv of moves) {
+            placeMove(mv[0], mv[1], color);
+            const score = -negamax(depth - 1, -beta, -alpha, opp, deadline, level.width, level.reduceAfter);
+            undoMove();
+            const safety = candidateSafety(mv, color);
+            const finalScore = score - safety * (difficulty === "legend" ? 1.1 : 0.9);
+            if (finalScore > depthScore) {
+              depthScore = finalScore;
+              depthBest = mv;
+            }
+            alpha = Math.max(alpha, score);
+            if (performance.now() > deadline) throw new Error("timeout");
+          }
+          bestMove = depthBest;
+          bestScore = depthScore;
+          aiStats.depth = depth;
+        } catch (err) {
+          break;
+        }
+      }
+
+      const safety = bestMove ? candidateSafety(bestMove, color) : 0;
+      if (safety >= 85000) {
+        const safe = candidates(color, level.width + 6)
+          .map(mv => [candidateSafety(mv, color), -moveScore(mv[0], mv[1], color), mv])
+          .sort((a, b) => a[0] - b[0] || a[1] - b[1])[0];
+        if (safe && safe[2]) {
+          bestMove = safe[2];
+          aiStats.gate = "safe";
+        }
+      }
+      aiStats.elapsed = performance.now() - start;
+      aiStats.score = Math.round(bestScore);
+      return bestMove;
+    }
+
+    function gateInfo(gate) {
+      const table = {
+        win: ["一手制胜", "AI 发现自己可以立即连五，因此跳过深层搜索直接落子。", "终局检测"],
+        block: ["必须防守", "对手存在下一手连五威胁，本步优先封堵胜点。", "必防优先"],
+        book: ["开局定式", "AI 使用轻量开局库，先占据贴近首手的高弹性位置。", "开局知识"],
+        force: ["强制进攻", "AI 找到四三或更强的进攻点，迫使对手进入防守。", "威胁搜索"],
+        defense: ["防守强制线", "对手存在强迫性组合威胁，AI 先化解危险。", "威胁搜索"],
+        pressure: ["双三压力", "当前局面适合制造双三压力，扩大后续候选优势。", "组合棋型"],
+        "anti-pressure": ["解除双三", "对手可形成双三，AI 选择先消除该战术点。", "组合棋型"],
+        safe: ["安全修正", "初选落点会给对手较强反击，AI 改选更稳的候选点。", "安全过滤"],
+        timeout: ["限时决策", "AI 在移动端时间预算内返回当前最优结果，保证界面流畅。", "迭代加深"],
+        fallback: ["本地兜底", "后台 Worker 不可用时，使用主线程轻量策略保证可玩。", "降级策略"]
+      };
+      return table[gate || ""] || ["宗师搜索", "AI 根据候选点排序、局面评估、转置表缓存和剪枝结果选择本手。", "Minimax / Alpha-Beta"];
+    }
+
+    function makeExplain(move, stats = aiStats, color = WHITE) {
+      const info = gateInfo(stats && stats.gate);
+      const moveText = move ? coordName(move[0], move[1]) : "--";
+      const top = [];
+      try {
+        for (const [index, mv] of candidates(color, 5).slice(0, 3).entries()) {
+          top.push({
+            move: coordName(mv[0], mv[1]),
+            score: index === 0 ? "主线" : "备选"
+          });
+        }
+      } catch (err) {}
+      const level = LEVELS[difficultySelect.value] || LEVELS.legend;
+      return {
+        title: info[0] + " · " + moveText,
+        reason: info[1] + " " + level.label + "模式搜索深度 D" + (stats.depth || 0) + "，节点 " + formatNodes(stats.nodes) + "。",
+        knowledgePoint: info[2],
+        topMoves: top
+      };
+    }
+
+    function createAiWorker() {
+      if (!("Worker" in window) || location.protocol === "file:") return null;
+      try {
+        return new Worker("./ai_worker.js");
+      } catch (err) {
+        return null;
+      }
+    }
+
+    function emergencyMove(color) {
+      const win = immediateWin(color);
+      if (win) return win;
+      const block = immediateWin(other(color));
+      if (block) return block;
+      const mv = candidates(color, 6)[0];
+      return mv || null;
+    }
+
+    function requestAiMove(color) {
+      if (!aiWorker) {
+        const move = localAiMove(color);
+        const stats = { ...aiStats, source: "main" };
+        return Promise.resolve({ ok: true, move, stats, explain: makeExplain(move, stats, color) });
+      }
+
+      const id = ++aiRequestSeq;
+      const snapshot = history.map(item => item.slice());
+      const difficulty = difficultySelect.value;
+
+      return new Promise(resolve => {
+        const cleanup = () => {
+          clearTimeout(timer);
+          aiWorker.removeEventListener("message", onMessage);
+          aiWorker.removeEventListener("error", onError);
+          if (activeAiRequest === id) activeAiRequest = null;
+        };
+
+        const finish = result => {
+          cleanup();
+          if (LAUNCH_PARAMS.has("qa") && qaAiDelayMs > 0) {
+            setTimeout(() => resolve(result), qaAiDelayMs);
+          } else {
+            resolve(result);
+          }
+        };
+
+        const onMessage = event => {
+          if (!event.data || event.data.id !== id) return;
+          finish(event.data);
+        };
+
+        const onError = () => {
+          aiWorker = null;
+          const move = emergencyMove(color);
+          const stats = { nodes: 0, depth: 0, elapsed: 0, gate: "fallback", source: "main" };
+          finish({
+            ok: true,
+            move,
+            stats,
+            explain: makeExplain(move, stats, color)
+          });
+        };
+
+        const timer = setTimeout(() => {
+          const move = emergencyMove(color);
+          const stats = { nodes: 0, depth: 0, elapsed: 0, gate: "timeout", source: "main" };
+          finish({
+            ok: true,
+            move,
+            stats,
+            explain: makeExplain(move, stats, color)
+          });
+        }, 4500);
+
+        activeAiRequest = id;
+        aiWorker.addEventListener("message", onMessage);
+        aiWorker.addEventListener("error", onError);
+        aiWorker.postMessage({ id, snapshot, color, difficulty });
+      });
+    }
+
+    async function handlePlayerMove(x, y) {
+      if (mode === "train") {
+        handleTrainingMove(x, y);
+        return;
+      }
+      if (mode === "review") return;
+      if (thinking || winner || !isValid(x, y)) return;
+      placeMove(x, y, BLACK);
+      pushMeta({ source: "human", knowledgePoint: "人类落子" });
+      feedback("stone");
+      updateUiState();
+      centerLast();
+      if (checkWin(x, y, BLACK)) {
+        winner = BLACK;
+        setStatus("黑棋胜");
+        setStats("对局结束");
+        showVictoryBanner(BLACK, x, y);
+        lastExplain = {
+          title: "黑棋胜利 · " + coordName(x, y),
+          reason: "玩家完成五连，当前局面已经终局。",
+          knowledgePoint: "终局检测",
+          topMoves: [{ move: coordName(x, y), score: "五连" }]
+        };
+        moveMeta[moveMeta.length - 1].explain = lastExplain;
+        renderExplain(lastExplain);
+        saveSnapshot();
+        return;
+      }
+      setThinking(true);
+      setStatus("AI 深算中");
+      setStats(aiWorker ? "后台搜索..." : "本机搜索...");
+      await new Promise(resolve => requestAnimationFrame(resolve));
+      const result = await requestAiMove(WHITE);
+      const mv = result && result.move;
+      aiStats = (result && result.stats) || aiStats;
+      const explain = (result && result.explain) || makeExplain(mv, aiStats, WHITE);
+      if (mv && placeMove(mv[0], mv[1], WHITE)) {
+        pushMeta({ source: "ai", stats: aiStats, explain });
+        lastExplain = explain;
+        if (checkWin(mv[0], mv[1], WHITE)) {
+          winner = WHITE;
+          setStatus("白棋胜");
+          showVictoryBanner(WHITE, mv[0], mv[1]);
+        } else {
+          setStatus("黑棋回合");
+        }
+      } else {
+        setStatus("黑棋回合");
+      }
+      setThinking(false);
+      updateStatsPanel(aiStats);
+      renderExplain(lastExplain);
+      setStats(`${aiStats.difficulty || ""} D${aiStats.depth || 0} N${formatNodes(aiStats.nodes)} ${formatSeconds(aiStats.elapsed)} ${aiStats.gate || ""}`);
+      feedback(winner ? "success" : "stone");
+      centerLast();
+      saveSnapshot();
+    }
+
+    function releaseCapturedPointer(event) {
+      if (!canvas.releasePointerCapture) return;
+      try {
+        canvas.releasePointerCapture(event.pointerId);
+      } catch (err) {}
+    }
+
+    function startPinchGesture() {
+      const points = Array.from(pointerMap.values());
+      if (points.length < 2) return false;
+      const [a, b] = points;
+      drag = {
+        mode: "pinch",
+        pinchDistance: Math.max(1, Math.hypot(a.x - b.x, a.y - b.y)),
+        scale: transform.scale,
+        x: transform.x,
+        y: transform.y
+      };
+      lastTapCandidate = null;
+      hoverCandidate = null;
+      requestDraw();
+      return true;
+    }
+
+    canvas.addEventListener("pointerdown", event => {
+      event.preventDefault();
+      setKeyboardInputMode(false);
+      focusBoard();
+      if (shouldDismissInspectorFromBoard(event)) {
+        setInspectorOpen(false);
+        requestDraw();
+        return;
+      }
+      if (canvas.setPointerCapture) canvas.setPointerCapture(event.pointerId);
+      pointerMap.set(event.pointerId, { x: event.clientX, y: event.clientY });
+      if (pointerMap.size === 1) {
+        const tapCandidate = screenToBoard(event.clientX, event.clientY);
+        drag = { mode: "tap-pan", x: event.clientX, y: event.clientY, tx: transform.x, ty: transform.y, moved: false, tapCandidate, pointerType: event.pointerType };
+        lastTapCandidate = tapCandidate;
+        hoverCandidate = lastTapCandidate;
+        requestDraw();
+      } else {
+        startPinchGesture();
+      }
+    });
+
+    canvas.addEventListener("pointermove", event => {
+      event.preventDefault();
+      if (!pointerMap.has(event.pointerId)) {
+        if (event.pointerType !== "touch") {
+          hoverCandidate = screenToBoard(event.clientX, event.clientY);
+          requestDraw();
+        }
+        return;
+      }
+      pointerMap.set(event.pointerId, { x: event.clientX, y: event.clientY });
+      const points = Array.from(pointerMap.values());
+      if (points.length === 1 && drag && drag.mode !== "pinch") {
+        const dx = event.clientX - drag.x;
+        const dy = event.clientY - drag.y;
+        if (!drag.moved && Math.hypot(dx, dy) <= CLICK_DRAG_THRESHOLD) {
+          lastTapCandidate = screenToBoard(event.clientX, event.clientY);
+          hoverCandidate = lastTapCandidate;
+          requestDraw();
+          return;
+        }
+        if (!drag.moved) {
+          drag.moved = true;
+          lastTapCandidate = null;
+          hoverCandidate = null;
+        }
+        transform.x = drag.tx + dx;
+        transform.y = drag.ty + dy;
+        userViewAdjusted = true;
+        clampTransform();
+        requestDraw();
+      } else if (points.length >= 2) {
+        const [a, b] = points;
+        if (!drag || drag.mode !== "pinch" || !drag.pinchDistance) {
+          startPinchGesture();
+          return;
+        }
+        const dist = Math.hypot(a.x - b.x, a.y - b.y);
+        const rect = canvas.getBoundingClientRect();
+        const midX = (a.x + b.x) / 2 - rect.left;
+        const midY = (a.y + b.y) / 2 - rect.top;
+        transform.scale = drag.scale;
+        transform.x = drag.x;
+        transform.y = drag.y;
+        zoomAt(dist / Math.max(1, drag.pinchDistance), midX, midY, { user: true });
+      }
+    });
+
+    canvas.addEventListener("pointerup", event => {
+      event.preventDefault();
+      const wasTap = drag && drag.mode !== "pinch" && !drag.moved && pointerMap.size === 1;
+      const releaseCandidate = screenToBoard(event.clientX, event.clientY);
+      const tapTarget = wasTap ? (releaseCandidate || lastTapCandidate || (drag.pointerType === "touch" ? drag.tapCandidate : null)) : null;
+      pointerMap.delete(event.pointerId);
+      releaseCapturedPointer(event);
+      if (wasTap && tapTarget) handlePlayerMove(tapTarget.x, tapTarget.y);
+      if (pointerMap.size === 0) {
+        drag = null;
+        lastTapCandidate = null;
+        hoverCandidate = event.pointerType !== "touch" ? screenToBoard(event.clientX, event.clientY) : null;
+        requestDraw();
+      }
+    });
+
+    canvas.addEventListener("pointercancel", event => {
+      event.preventDefault();
+      pointerMap.delete(event.pointerId);
+      releaseCapturedPointer(event);
+      if (pointerMap.size === 0) {
+        drag = null;
+        lastTapCandidate = null;
+        hoverCandidate = null;
+        requestDraw();
+      }
+    });
+
+    canvas.addEventListener("pointerleave", event => {
+      if (event.pointerType === "touch") return;
+      hoverCandidate = null;
+      requestDraw();
+    });
+
+    canvas.addEventListener("wheel", event => {
+      event.preventDefault();
+      const rect = canvas.getBoundingClientRect();
+      const sx = event.clientX - rect.left;
+      const sy = event.clientY - rect.top;
+      zoomAt(wheelZoomFactor(event.deltaY), sx, sy, { user: true });
+      hoverCandidate = screenToBoard(event.clientX, event.clientY);
+    }, { passive: false });
+
+    canvas.addEventListener("contextmenu", event => {
+      event.preventDefault();
+      centerLast();
+    });
+
+    canvas.addEventListener("keydown", handleBoardKeydown);
+    document.addEventListener("keydown", handleGlobalKeydown, true);
+    document.addEventListener("pointerdown", () => setKeyboardInputMode(false), true);
+
+    for (const tab of modeTabs) {
+      tab.addEventListener("click", () => switchMode(tab.dataset.mode));
+    }
+    nextPuzzleBtn.addEventListener("click", nextPuzzle);
+    exitReviewBtn.addEventListener("click", () => switchMode("play"));
+    reviewPrevBtn.addEventListener("click", () => {
+      reviewIndex = Math.max(0, reviewIndex - 1);
+      renderReviewPanel();
+      centerLast();
+      requestDraw();
+    });
+    reviewNextBtn.addEventListener("click", () => {
+      reviewIndex = Math.min(history.length, reviewIndex + 1);
+      renderReviewPanel();
+      centerLast();
+      requestDraw();
+    });
+    soundBtn.addEventListener("click", () => {
+      settings.sound = !settings.sound;
+      updateToggleButtons();
+      feedback("stone");
+      saveSnapshot();
+    });
+    hapticBtn.addEventListener("click", () => {
+      settings.haptic = !settings.haptic;
+      updateToggleButtons();
+      feedback("stone");
+      saveSnapshot();
+    });
+    panelToggleBtn.addEventListener("click", () => setInspectorOpen(!settings.inspectorOpen));
+    panelCloseBtn.addEventListener("click", () => setInspectorOpen(false));
+    newGameBtn.addEventListener("click", startNewGameCommand);
+    fitBtn.addEventListener("click", fitBoardCommand);
+    centerBtn.addEventListener("click", centerBoardCommand);
+    zoomInBtn.addEventListener("click", () => zoomAt(1.25, canvasSize().width / 2, canvasSize().height / 2, { user: true }));
+    zoomOutBtn.addEventListener("click", () => zoomAt(0.8, canvasSize().width / 2, canvasSize().height / 2, { user: true }));
+    undoBtn.addEventListener("click", undoPairCommand);
+    difficultySelect.addEventListener("change", () => {
+      settings.manualDifficulty = true;
+      setStats(`AI \u5f3a\u5ea6: ${difficultySelect.options[difficultySelect.selectedIndex].text}`);
+      updateStatsPanel(aiStats);
+      saveSnapshot();
+    });
+    updateConnectivity();
+    window.addEventListener("online", updateConnectivity);
+    window.addEventListener("offline", updateConnectivity);
+
+    if ("serviceWorker" in navigator && location.protocol !== "file:") {
+      window.addEventListener("load", () => {
+        navigator.serviceWorker.register("./sw.js").then(() => {
+          cacheText.textContent = "\u79bb\u7ebf\u5df2\u7f13\u5b58";
+          return navigator.serviceWorker.ready;
+        }).then(() => {
+          cacheText.textContent = navigator.onLine ? "\u53ef\u90e8\u7f72" : "\u79bb\u7ebf\u53ef\u7528";
+        }).catch(() => {
+          cacheText.textContent = "\u672c\u5730\u6a21\u5f0f";
+        });
+      });
+    }
+
+    window.addEventListener("resize", () => resizeCanvas({ preserveUserView: true }));
+    if ("ResizeObserver" in window) {
+      const resizeObserver = new ResizeObserver(() => resizeCanvas({ preserveUserView: true }));
+      resizeObserver.observe(canvas);
+    }
+
+    installDebugApi();
+    resizeCanvas();
+    updateToggleButtons();
+    if (!restoreSnapshot()) resetState({ keepStorage: true });
+    applyLaunchParams();
+  </script>
+</body>
+</html>
+
+

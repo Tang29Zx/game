@@ -1,0 +1,1908 @@
+﻿<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#13241b">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="&#31163;&#32447;&#20116;&#23376;&#26827; AI">
+  <meta name="format-detection" content="telephone=no">
+  <link rel="manifest" href="./manifest.webmanifest">
+  <link rel="icon" type="image/png" sizes="192x192" href="./icons/icon-192.png">
+  <link rel="shortcut icon" href="./favicon.ico">
+  <link rel="apple-touch-icon" href="./icons/icon-180.png">
+  <title>&#20116;&#23376;&#26827; AI &#26827;&#38498; &#183; &#31163;&#32447;</title>
+  <style>
+    :root {
+      color-scheme: light;
+      --bg: #13241b;
+      --panel: #f6ecd7;
+      --line: #9b7a52;
+      --text: #2a1b0f;
+      --muted: #735d43;
+      --accent: #9e4f24;
+      --danger: #a33a2c;
+    }
+
+    * { box-sizing: border-box; }
+
+    html, body {
+      width: 100%;
+      height: 100%;
+      margin: 0;
+      overflow: hidden;
+      background: var(--bg);
+      color: var(--text);
+      font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      touch-action: none;
+      user-select: none;
+      -webkit-user-select: none;
+      -webkit-touch-callout: none;
+      overscroll-behavior: none;
+    }
+
+    button, select {
+      min-height: 40px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: #fff7e9;
+      color: var(--text);
+      font: inherit;
+      padding: 0 10px;
+    }
+
+    button:active { transform: translateY(1px); }
+
+    button:focus-visible, select:focus-visible {
+      outline: 2px solid #c7772f;
+      outline-offset: 2px;
+    }
+
+    .app {
+      width: 100vw;
+      height: 100vh;
+      height: 100dvh;
+      display: grid;
+      grid-template-rows: auto 1fr auto;
+      background:
+        radial-gradient(circle at 50% -10%, rgba(207, 166, 89, 0.2), transparent 32%),
+        radial-gradient(circle at 12% 82%, rgba(47, 122, 79, 0.42), transparent 28%),
+        repeating-linear-gradient(38deg, rgba(255, 255, 255, 0.028) 0 1px, transparent 1px 7px),
+        var(--bg);
+    }
+
+    .topbar, .bottombar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      padding: calc(10px + env(safe-area-inset-top)) 12px 10px;
+      border-bottom: 1px solid var(--line);
+      background: linear-gradient(180deg, rgba(255, 250, 236, 0.98), rgba(236, 218, 187, 0.96));
+      backdrop-filter: blur(14px);
+    }
+
+    .bottombar {
+      padding: 10px 12px calc(10px + env(safe-area-inset-bottom));
+      border-top: 1px solid var(--line);
+      border-bottom: 0;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      min-width: 0;
+      gap: 10px;
+    }
+
+    .mark {
+      width: 28px;
+      height: 28px;
+      flex: 0 0 auto;
+      border-radius: 50%;
+      background:
+        radial-gradient(circle at 34% 30%, #fff0b5 0 11%, transparent 12%),
+        radial-gradient(circle at 50% 52%, #21150c 0 49%, transparent 50%),
+        #c8924a;
+      box-shadow: 0 0 0 2px rgba(158, 79, 36, 0.18);
+    }
+
+    h1 {
+      margin: 0;
+      font-size: 18px;
+      line-height: 1.05;
+      letter-spacing: 0;
+    }
+
+    .status {
+      margin: 3px 0 0;
+      max-width: 48vw;
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.2;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .actions {
+      display: flex;
+      gap: 8px;
+      flex: 0 0 auto;
+    }
+
+    #difficultySelect { max-width: 112px; }
+
+    .board-area {
+      position: relative;
+      display: grid;
+      grid-template-rows: minmax(0, 1fr) auto;
+      overflow: hidden;
+      min-height: 0;
+      background:
+        radial-gradient(ellipse at 50% 42%, rgba(255, 236, 178, 0.13), transparent 38%),
+        linear-gradient(180deg, rgba(255, 255, 255, 0.035), transparent 42%),
+        linear-gradient(115deg, rgba(255, 255, 255, 0.025), transparent 50%),
+        #0e1b14;
+    }
+
+    #boardCanvas {
+      width: 100%;
+      height: 100%;
+      min-height: 0;
+      display: block;
+      grid-row: 1;
+      grid-column: 1;
+      background: #0e1b14;
+      touch-action: none;
+      -webkit-tap-highlight-color: transparent;
+      cursor: crosshair;
+      image-rendering: auto;
+    }
+
+    #boardCanvas:focus {
+      outline: none;
+    }
+
+    html.keyboard-input #boardCanvas:focus {
+      outline: 3px solid rgba(199, 119, 47, 0.9);
+      outline-offset: -6px;
+    }
+
+    .zoom-controls {
+      position: static;
+      grid-row: 2;
+      grid-column: 1;
+      justify-self: end;
+      display: flex;
+      gap: 6px;
+      margin: 0 12px 8px;
+      padding: 6px;
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 10px;
+      background: rgba(255, 247, 233, 0.82);
+      backdrop-filter: blur(10px);
+    }
+
+    .zoom-controls button {
+      min-width: 44px;
+      min-height: 44px;
+    }
+
+    .victory-banner {
+      position: absolute;
+      left: 50%;
+      top: 14px;
+      z-index: 6;
+      width: min(500px, calc(100% - 28px));
+      transform: translateX(-50%);
+      padding: 13px 16px;
+      border: 1px solid rgba(255, 226, 140, 0.76);
+      border-radius: 14px;
+      color: #fff8df;
+      text-align: center;
+      pointer-events: none;
+      background:
+        radial-gradient(circle at 50% 0%, rgba(255, 225, 112, 0.34), transparent 54%),
+        linear-gradient(135deg, rgba(41, 25, 8, 0.92), rgba(119, 56, 14, 0.86));
+      box-shadow:
+        0 24px 70px rgba(0, 0, 0, 0.34),
+        0 0 42px rgba(255, 198, 84, 0.26),
+        inset 0 1px 0 rgba(255, 255, 255, 0.28);
+      backdrop-filter: blur(14px);
+      animation: victoryIn 360ms cubic-bezier(.2,.9,.2,1);
+    }
+    .victory-banner[hidden] { display: none; }
+    .victory-kicker {
+      display: block;
+      margin-bottom: 4px;
+      font-size: 12px;
+      font-weight: 800;
+      letter-spacing: 0.16em;
+      color: rgba(255, 229, 151, 0.86);
+    }
+    .victory-title {
+      display: block;
+      font-size: clamp(24px, 4vw, 42px);
+      font-weight: 900;
+      line-height: 1;
+      text-shadow: 0 2px 0 rgba(42, 19, 4, 0.8), 0 0 24px rgba(255, 218, 112, 0.42);
+    }
+    .victory-subtitle {
+      display: block;
+      margin-top: 8px;
+      font-size: 13px;
+      color: rgba(255, 248, 223, 0.88);
+    }
+    @keyframes victoryIn {
+      from { opacity: 0; transform: translateX(-50%) translateY(-18px) scale(0.96); }
+      to { opacity: 1; transform: translateX(-50%) translateY(0) scale(1); }
+    }
+
+    .stats {
+      min-width: 0;
+      flex: 1;
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.25;
+      text-align: center;
+    }
+
+    @media (max-width: 420px) {
+      .topbar, .bottombar {
+        padding-left: 10px;
+        padding-right: 10px;
+        gap: 8px;
+      }
+      button, select {
+        min-height: 44px;
+        padding: 0 8px;
+        font-size: 13px;
+      }
+      h1 { font-size: 17px; }
+      .status { max-width: 40vw; }
+    }
+  </style>
+</head>
+<body>
+  <main class="app">
+    <header class="topbar">
+      <div class="brand">
+        <span class="mark"></span>
+        <div>
+          <h1>&#20116;&#23376;&#26827; AI &#26827;&#38498; &#183; &#31163;&#32447;</h1>
+          <div id="statusText" class="status">&#40657;&#26827;&#22238;&#21512;</div>
+        </div>
+      </div>
+      <div class="actions">
+        <select id="difficultySelect" aria-label="AI &#24378;&#24230;" title="AI &#24378;&#24230;">
+          <option value="legend" selected>&#23447;&#24072;</option>
+          <option value="master">&#22825;&#20803;</option>
+          <option value="strong">&#39640;&#25163;</option>
+          <option value="fast">&#26497;&#36895;</option>
+        </select>
+        <button id="newGameBtn" type="button" aria-label="&#24320;&#22987;&#26032;&#23616;" title="&#24320;&#22987;&#26032;&#23616;">&#26032;&#23616;</button>
+      </div>
+    </header>
+
+    <section class="board-area">
+      <canvas id="boardCanvas" tabindex="0" role="application" aria-label="&#20116;&#23376;&#26827;&#26827;&#30424;&#65292;&#28857;&#20987;&#33853;&#23376;&#65292;&#25302;&#25341;&#24179;&#31227;&#65292;&#28378;&#36718;&#32553;&#25918;" title="&#28857;&#20987;&#33853;&#23376;&#65292;&#25302;&#25341;&#24179;&#31227;&#65292;&#28378;&#36718;&#32553;&#25918;"></canvas>
+      <div id="victoryBanner" class="victory-banner" hidden aria-live="assertive">
+        <span class="victory-kicker">&#32456;&#23616;&#25104;&#31435;</span>
+        <strong id="victoryTitle" class="victory-title">&#32988;&#21033;</strong>
+        <span id="victorySubtitle" class="victory-subtitle">&#20116;&#36830;&#33853;&#23450;</span>
+      </div>
+      <div class="zoom-controls">
+        <button id="zoomOutBtn" type="button" aria-label="&#32553;&#23567;&#26827;&#30424;" title="&#32553;&#23567;&#26827;&#30424;">-</button>
+        <button id="fitBtn" type="button" aria-label="&#36866;&#37197;&#26827;&#30424;" title="&#36866;&#37197;&#26827;&#30424;">&#36866;&#23631;</button>
+        <button id="zoomInBtn" type="button" aria-label="&#25918;&#22823;&#26827;&#30424;" title="&#25918;&#22823;&#26827;&#30424;">+</button>
+      </div>
+    </section>
+
+    <footer class="bottombar">
+      <button id="undoBtn" type="button" aria-label="&#24724;&#26827;" title="&#24724;&#26827;">&#24724;&#26827;</button>
+      <div id="statsText" class="stats">&#26412;&#26426; AI &#23601;&#32490;</div>
+      <button id="centerBtn" type="button" aria-label="&#22238;&#21040;&#26368;&#21518;&#19968;&#25163;" title="&#22238;&#21040;&#26368;&#21518;&#19968;&#25163;">&#23621;&#20013;</button>
+    </footer>
+  </main>
+
+  <script>
+    "use strict";
+
+    const BOARD_SIZE = 25;
+    const EMPTY = 0;
+    const BLACK = 1;
+    const WHITE = 2;
+    const WORLD_CELL = 30;
+    const WORLD_MARGIN = 44;
+    const WORLD_SIZE = WORLD_MARGIN * 2 + WORLD_CELL * (BOARD_SIZE - 1);
+    const GRID_SPAN = WORLD_CELL * (BOARD_SIZE - 1);
+    const HIT_RADIUS = WORLD_CELL * 0.72;
+    const CLICK_DRAG_THRESHOLD = 8;
+    const INF = 1e15;
+    const WIN = 10000000;
+
+    const RANK = {
+      FIVE: 700,
+      LIVE4: 660,
+      DOUBLE4: 640,
+      FOUR3: 620,
+      DOUBLE3: 560,
+      RUSH4: 500,
+      LIVE3: 300
+    };
+
+    const PATTERNS = [
+      ["11111", "five"],
+      ["011110", "live4"],
+      ["011112", "rush4"],
+      ["211110", "rush4"],
+      ["11011", "rush4"],
+      ["10111", "rush4"],
+      ["11101", "rush4"],
+      ["01110", "live3"],
+      ["010110", "live3"],
+      ["011010", "live3"],
+      ["001112", "sleep3"],
+      ["211100", "sleep3"],
+      ["010112", "sleep3"],
+      ["211010", "sleep3"],
+      ["011012", "sleep3"],
+      ["210110", "sleep3"],
+      ["10011", "sleep3"],
+      ["11001", "sleep3"],
+      ["10101", "sleep3"]
+    ];
+
+    const LEVELS = {
+      fast: { label: "极速", depth: 2, time: 220, width: 7, reduceAfter: 4 },
+      strong: { label: "高手", depth: 3, time: 650, width: 10, reduceAfter: 5 },
+      master: { label: "天元", depth: 4, time: 1050, width: 12, reduceAfter: 6 },
+      legend: { label: "宗师", depth: 5, time: 1600, width: 14, reduceAfter: 7 }
+    };
+
+    const canvas = document.getElementById("boardCanvas");
+    const ctx = canvas.getContext("2d", { alpha: false, desynchronized: true });
+    const statusText = document.getElementById("statusText");
+    const statsText = document.getElementById("statsText");
+    const victoryBanner = document.getElementById("victoryBanner");
+    const victoryTitle = document.getElementById("victoryTitle");
+    const victorySubtitle = document.getElementById("victorySubtitle");
+    const newGameBtn = document.getElementById("newGameBtn");
+    const undoBtn = document.getElementById("undoBtn");
+    const centerBtn = document.getElementById("centerBtn");
+    const fitBtn = document.getElementById("fitBtn");
+    const zoomInBtn = document.getElementById("zoomInBtn");
+    const zoomOutBtn = document.getElementById("zoomOutBtn");
+    const difficultySelect = document.getElementById("difficultySelect");
+    const isStandalone = Boolean(window.navigator.standalone) ||
+      window.matchMedia("(display-mode: standalone)").matches;
+    const perfMode = isStandalone || /iPhone|iPad|iPod/i.test(navigator.userAgent);
+    const maxPixelRatio = 2;
+    const BOARD_LAYER_PIXEL_RATIO = 2.4;
+    const STONE_SPRITE_VERSION = "game-v9";
+
+    let grid = [];
+    let history = [];
+    let winner = null;
+    let winLine = [];
+    let thinking = false;
+    let aiStats = {};
+    let boardHash = 0;
+    let tt = new Map();
+    let transform = { scale: 1, x: 0, y: 0 };
+    let pointerMap = new Map();
+    let drag = null;
+    let lastTapCandidate = null;
+    let hoverCandidate = null;
+    let pixelRatio = 1;
+    let drawQueued = false;
+    let boardLayer = null;
+    let boardLayerRatio = 0;
+    let stoneSprites = new Map();
+    let userViewAdjusted = false;
+    let aiWorker = createAiWorker();
+    let aiRequestSeq = 0;
+    let activeAiRequest = null;
+    let keyboardInputMode = false;
+    let drawPerf = { count: 0, lastMs: 0, maxMs: 0 };
+
+    if (perfMode) setStats("\u4e3b\u5c4f\u5e55\u68cb\u529b\u4f18\u5148");
+
+    function resetState() {
+      grid = Array.from({ length: BOARD_SIZE }, () => Array(BOARD_SIZE).fill(EMPTY));
+      history = [];
+      boardHash = 0;
+      winner = null;
+      winLine = [];
+      thinking = false;
+      aiStats = {};
+      hideVictoryBanner();
+      setStatus("\u9ed1\u68cb\u56de\u5408");
+      setStats("\u672c\u673a AI \u5c31\u7eea");
+      fitBoard();
+      requestDraw();
+    }
+
+    function setStatus(text) { statusText.textContent = text; }
+    function setStats(text) { statsText.textContent = text; }
+    function hideVictoryBanner() {
+      winLine = [];
+      victoryBanner.hidden = true;
+    }
+    function showVictoryBanner(color, x, y) {
+      const blackWin = color === BLACK;
+      winLine = getWinLine(x, y, color);
+      victoryTitle.textContent = blackWin ? "黑棋封神" : "白棋绝杀";
+      victorySubtitle.textContent = `${blackWin ? "玩家" : "AI"} 在 ${coordName(x, y)} 完成五连，棋局定格。`;
+      victoryBanner.hidden = false;
+      requestDraw();
+    }
+    function other(color) { return color === BLACK ? WHITE : BLACK; }
+    function hashStone(x, y, color) {
+      return (Math.imul(x + 1, 73856093) ^ Math.imul(y + 1, 19349663) ^ Math.imul(color, 83492791)) >>> 0;
+    }
+    function isValid(x, y) {
+      return x >= 0 && y >= 0 && x < BOARD_SIZE && y < BOARD_SIZE && grid[y][x] === EMPTY;
+    }
+
+    function canvasSize() {
+      const rect = canvas.getBoundingClientRect();
+      return { width: rect.width, height: rect.height };
+    }
+
+    function isCompactLandscape(size = canvasSize()) {
+      return size.width > size.height && size.height <= 520;
+    }
+
+    function resizeCanvas() {
+      const dpr = Math.min(maxPixelRatio, Math.max(1, window.devicePixelRatio || 1));
+      const rect = canvas.getBoundingClientRect();
+      if (pixelRatio !== dpr) {
+        boardLayer = null;
+        boardLayerRatio = 0;
+      }
+      pixelRatio = dpr;
+      canvas.width = Math.max(1, Math.floor(rect.width * dpr));
+      canvas.height = Math.max(1, Math.floor(rect.height * dpr));
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+      if (!history.length && !userViewAdjusted) fitBoard();
+      else clampTransform();
+      requestDraw();
+    }
+
+    function fitBoard() {
+      const size = canvasSize();
+      const wideLayout = size.width >= 760 && size.height >= 520;
+      if (wideLayout) {
+        const fitPadding = isCompactLandscape(size) ? 0.98 : 0.92;
+        const scale = Math.min(size.width / WORLD_SIZE, size.height / WORLD_SIZE) * fitPadding;
+        transform.scale = Math.max(0.28, Math.min(1.45, scale));
+        transform.x = (size.width - WORLD_SIZE * transform.scale) / 2;
+        transform.y = (size.height - WORLD_SIZE * transform.scale) / 2;
+        userViewAdjusted = false;
+        clampTransform();
+        return;
+      }
+      const focusCells = BOARD_SIZE <= 25 ? BOARD_SIZE + 1 : (perfMode ? 18 : 22);
+      const viewSpan = WORLD_CELL * focusCells;
+      const fitPadding = isCompactLandscape(size) ? 0.98 : 0.92;
+      const scale = Math.min(size.width / viewSpan, size.height / viewSpan) * fitPadding;
+      const target = history.length ? boardToWorld(history[history.length - 1][0], history[history.length - 1][1]) : { x: WORLD_SIZE / 2, y: WORLD_SIZE / 2 };
+      const minScale = isCompactLandscape(size) ? 0.26 : 0.36;
+      transform.scale = Math.max(minScale, Math.min(3.4, scale));
+      transform.x = size.width / 2 - target.x * transform.scale;
+      transform.y = size.height / 2 - target.y * transform.scale;
+      userViewAdjusted = false;
+      clampTransform();
+    }
+
+    function isWorldPointVisible(x, y, padding = 34) {
+      const size = canvasSize();
+      const sx = transform.x + x * transform.scale;
+      const sy = transform.y + y * transform.scale;
+      return sx >= padding && sx <= size.width - padding &&
+        sy >= padding && sy <= size.height - padding;
+    }
+
+    function centerLast() {
+      const last = history[history.length - 1];
+      const target = last ? boardToWorld(last[0], last[1]) : { x: WORLD_SIZE / 2, y: WORLD_SIZE / 2 };
+      if (isWorldPointVisible(target.x, target.y)) {
+        requestDraw();
+        return;
+      }
+      const size = canvasSize();
+      if (size.width >= 760 && size.height >= 520) {
+        fitBoard();
+        requestDraw();
+        return;
+      }
+      centerOnWorldPoint(target.x, target.y);
+    }
+
+    function centerOnWorldPoint(x, y) {
+      const size = canvasSize();
+      transform.x = size.width / 2 - x * transform.scale;
+      transform.y = size.height / 2 - y * transform.scale;
+      clampTransform();
+      requestDraw();
+    }
+
+    function clampAxis(pos, viewSize, contentSize) {
+      const pad = Math.min(90, Math.max(24, viewSize * 0.08));
+      if (contentSize <= viewSize) {
+        if (!userViewAdjusted) return (viewSize - contentSize) / 2;
+        return Math.min(viewSize - contentSize, Math.max(0, pos));
+      }
+      const min = viewSize - contentSize - pad;
+      const max = pad;
+      return Math.min(max, Math.max(min, pos));
+    }
+
+    function clampTransform() {
+      const size = canvasSize();
+      if (!size.width || !size.height || !Number.isFinite(transform.scale)) return;
+      transform.scale = Math.max(0.22, Math.min(3.4, transform.scale));
+      transform.x = clampAxis(transform.x, size.width, WORLD_SIZE * transform.scale);
+      transform.y = clampAxis(transform.y, size.height, WORLD_SIZE * transform.scale);
+    }
+
+    function zoomAt(factor, sx, sy) {
+      const oldScale = transform.scale;
+      if (!oldScale || !Number.isFinite(oldScale)) return;
+      const nextScale = Math.max(0.22, Math.min(3.4, oldScale * factor));
+      const wx = (sx - transform.x) / oldScale;
+      const wy = (sy - transform.y) / oldScale;
+      transform.scale = nextScale;
+      transform.x = sx - wx * nextScale;
+      transform.y = sy - wy * nextScale;
+      userViewAdjusted = true;
+      clampTransform();
+      requestDraw();
+    }
+
+    function panViewBy(dx, dy) {
+      transform.x += dx;
+      transform.y += dy;
+      userViewAdjusted = true;
+      clampTransform();
+      requestDraw();
+    }
+
+    function handleBoardKeydown(event) {
+      const key = event.key;
+      const size = canvasSize();
+      const panStep = Math.max(24, Math.min(96, Math.round(Math.min(size.width, size.height) * 0.1)));
+      let handled = true;
+      if (key === "ArrowLeft") {
+        panViewBy(-panStep, 0);
+      } else if (key === "ArrowRight") {
+        panViewBy(panStep, 0);
+      } else if (key === "ArrowUp") {
+        panViewBy(0, -panStep);
+      } else if (key === "ArrowDown") {
+        panViewBy(0, panStep);
+      } else if (key === "+" || key === "=") {
+        zoomAt(1.18, size.width / 2, size.height / 2);
+      } else if (key === "-" || key === "_") {
+        zoomAt(1 / 1.18, size.width / 2, size.height / 2);
+      } else if (key === "0") {
+        fitBoard();
+        requestDraw();
+      } else if (key === "Home") {
+        centerLast();
+      } else {
+        handled = false;
+      }
+      if (handled) {
+        setKeyboardInputMode(true);
+        event.preventDefault();
+      }
+    }
+
+    function isEditingTarget(target) {
+      return Boolean(target && target.closest && target.closest("input, textarea, select, [contenteditable='true']"));
+    }
+
+    function startNewGameCommand() {
+      if (thinking) return;
+      resetState();
+      focusBoard();
+    }
+
+    function fitBoardCommand() {
+      fitBoard();
+      requestDraw();
+      focusBoard();
+    }
+
+    function centerBoardCommand() {
+      centerLast();
+      focusBoard();
+    }
+
+    function undoPairCommand() {
+      if (thinking) return;
+      if (history.length) undoMove();
+      if (history.length && history[history.length - 1][2] === BLACK) undoMove();
+      winner = null;
+      hideVictoryBanner();
+      setStatus("\u9ed1\u68cb\u56de\u5408");
+      setStats("\u5df2\u6094\u68cb");
+      requestDraw();
+      focusBoard();
+    }
+
+    function handleGlobalKeydown(event) {
+      if (event.key === "Tab") {
+        setKeyboardInputMode(true);
+        return;
+      }
+      if (event.defaultPrevented || event.ctrlKey || event.metaKey || event.altKey || isEditingTarget(event.target)) return;
+      const key = event.key.length === 1 ? event.key.toLowerCase() : event.key;
+      let handled = true;
+      if (key === "n") {
+        startNewGameCommand();
+      } else if (key === "u") {
+        undoPairCommand();
+      } else if (key === "f") {
+        fitBoardCommand();
+      } else if (key === "c") {
+        centerBoardCommand();
+      } else {
+        handled = false;
+      }
+      if (handled) {
+        setKeyboardInputMode(true);
+        event.preventDefault();
+      }
+    }
+
+    function focusBoard() {
+      try {
+        canvas.focus({ preventScroll: true });
+      } catch (err) {
+        canvas.focus();
+      }
+    }
+
+    function setKeyboardInputMode(enabled) {
+      keyboardInputMode = Boolean(enabled);
+      document.documentElement.classList.toggle("keyboard-input", keyboardInputMode);
+    }
+
+    function wheelZoomFactor(deltaY) {
+      const amount = Math.max(-700, Math.min(700, -Number(deltaY || 0)));
+      return Math.exp(amount / 900);
+    }
+
+    function boardToWorld(x, y) {
+      return { x: WORLD_MARGIN + x * WORLD_CELL, y: WORLD_MARGIN + y * WORLD_CELL };
+    }
+
+    function boardToScreen(x, y) {
+      const rect = canvas.getBoundingClientRect();
+      const p = boardToWorld(x, y);
+      return {
+        clientX: rect.left + transform.x + p.x * transform.scale,
+        clientY: rect.top + transform.y + p.y * transform.scale
+      };
+    }
+
+    function screenToBoard(clientX, clientY) {
+      const rect = canvas.getBoundingClientRect();
+      const sx = clientX - rect.left;
+      const sy = clientY - rect.top;
+      const wx = (sx - transform.x) / transform.scale;
+      const wy = (sy - transform.y) / transform.scale;
+      const x = Math.round((wx - WORLD_MARGIN) / WORLD_CELL);
+      const y = Math.round((wy - WORLD_MARGIN) / WORLD_CELL);
+      const snap = boardToWorld(x, y);
+      const dist = Math.hypot(wx - snap.x, wy - snap.y);
+      if (x < 0 || y < 0 || x >= BOARD_SIZE || y >= BOARD_SIZE || dist > HIT_RADIUS) return null;
+      return { x, y };
+    }
+
+    function installDebugApi() {
+      if (!new URLSearchParams(location.search).has("qa")) return;
+      window.__gomokuOfflineDebug = {
+        state() {
+          const rect = canvas.getBoundingClientRect();
+          return {
+            title: document.title,
+            history: history.map(item => item.slice()),
+            winner,
+            winLine: winLine.map(item => item.slice()),
+            thinking,
+            transform: { ...transform },
+            userViewAdjusted,
+            pixelRatio,
+            drawPerf: { ...drawPerf },
+            boardLayerReady: Boolean(boardLayer),
+            boardLayerRatio,
+            maxPixelRatio,
+            stoneSpriteVersion: STONE_SPRITE_VERSION,
+            canvasRect: { left: rect.left, top: rect.top, width: rect.width, height: rect.height },
+            canvasBuffer: { width: canvas.width, height: canvas.height },
+            world: { boardSize: BOARD_SIZE, worldCell: WORLD_CELL, worldMargin: WORLD_MARGIN, worldSize: WORLD_SIZE, hitRadius: HIT_RADIUS },
+            status: statusText.textContent,
+            stats: statsText.textContent,
+            victoryVisible: !victoryBanner.hidden,
+            victoryTitle: victoryTitle.textContent,
+            controls: ["difficultySelect", "newGameBtn", "boardCanvas", "zoomOutBtn", "fitBtn", "zoomInBtn", "undoBtn", "centerBtn"].map(id => {
+              const el = document.getElementById(id);
+              return { id, ariaLabel: el ? el.getAttribute("aria-label") || "" : "", title: el ? el.getAttribute("title") || "" : "" };
+            })
+          };
+        },
+        screenToBoard,
+        boardToScreen,
+        reset() { resetState(); },
+        fit() { fitBoard(); requestDraw(); }
+      };
+    }
+
+    function requestDraw() {
+      if (drawQueued) return;
+      drawQueued = true;
+      requestAnimationFrame(() => {
+        drawQueued = false;
+        draw();
+      });
+    }
+
+    function draw() {
+      const drawStarted = performance.now();
+      const size = canvasSize();
+      ctx.save();
+      ctx.setTransform(pixelRatio, 0, 0, pixelRatio, 0, 0);
+      ctx.clearRect(0, 0, size.width, size.height);
+      drawFeltBackdrop(size);
+
+      ctx.translate(transform.x, transform.y);
+      ctx.scale(transform.scale, transform.scale);
+
+      try {
+        const layer = ensureBoardLayer();
+        ctx.drawImage(layer, 0, 0, WORLD_SIZE, WORLD_SIZE);
+      } catch (err) {
+        boardLayer = null;
+        drawBoardSurface(ctx);
+      }
+      drawPieces();
+      drawTapPreview();
+      drawWinLine();
+      drawLastMarker();
+      ctx.restore();
+      const elapsed = performance.now() - drawStarted;
+      drawPerf.count += 1;
+      drawPerf.lastMs = elapsed;
+      drawPerf.maxMs = Math.max(drawPerf.maxMs, elapsed);
+    }
+
+    function drawFeltBackdrop(size) {
+      const bg = ctx.createLinearGradient(0, 0, size.width, size.height);
+      bg.addColorStop(0, "#14271d");
+      bg.addColorStop(0.55, "#0f2017");
+      bg.addColorStop(1, "#08120d");
+      ctx.fillStyle = bg;
+      ctx.fillRect(0, 0, size.width, size.height);
+
+      const spotlight = ctx.createRadialGradient(size.width * 0.5, size.height * 0.38, 20, size.width * 0.5, size.height * 0.46, Math.max(size.width, size.height) * 0.62);
+      spotlight.addColorStop(0, "rgba(255, 227, 159, 0.16)");
+      spotlight.addColorStop(0.45, "rgba(47, 122, 79, 0.10)");
+      spotlight.addColorStop(1, "rgba(0, 0, 0, 0.38)");
+      ctx.fillStyle = spotlight;
+      ctx.fillRect(0, 0, size.width, size.height);
+
+      ctx.save();
+      ctx.globalAlpha = 0.18;
+      ctx.strokeStyle = "rgba(255, 255, 255, 0.05)";
+      ctx.lineWidth = 1;
+      const rows = Math.min(56, Math.max(18, Math.floor(size.height / 13)));
+      for (let i = 0; i < rows; i += 1) {
+        const y = (i / Math.max(1, rows - 1)) * size.height;
+        ctx.beginPath();
+        ctx.moveTo(0, y);
+        ctx.bezierCurveTo(size.width * 0.28, y + Math.sin(i * 1.1) * 8, size.width * 0.72, y - Math.cos(i * 0.8) * 7, size.width, y + Math.sin(i) * 4);
+        ctx.stroke();
+      }
+      ctx.restore();
+    }
+
+    function ensureBoardLayer() {
+      const ratio = Math.min(BOARD_LAYER_PIXEL_RATIO, Math.max(2, pixelRatio));
+      if (boardLayer && boardLayerRatio === ratio) return boardLayer;
+      const layer = document.createElement("canvas");
+      layer.width = Math.ceil(WORLD_SIZE * ratio);
+      layer.height = Math.ceil(WORLD_SIZE * ratio);
+      const layerCtx = layer.getContext("2d", { alpha: false });
+      layerCtx.imageSmoothingEnabled = true;
+      layerCtx.imageSmoothingQuality = "high";
+      layerCtx.setTransform(ratio, 0, 0, ratio, 0, 0);
+      drawBoardSurface(layerCtx);
+      boardLayer = layer;
+      boardLayerRatio = ratio;
+      return boardLayer;
+    }
+
+    function drawBoardSurface(context) {
+      const outerGrad = context.createLinearGradient(0, 0, WORLD_SIZE, WORLD_SIZE);
+      outerGrad.addColorStop(0, "#6b421f");
+      outerGrad.addColorStop(0.5, "#a6672f");
+      outerGrad.addColorStop(1, "#3e210f");
+      context.shadowColor = "rgba(0, 0, 0, 0.38)";
+      context.shadowBlur = 18;
+      context.shadowOffsetY = 12;
+      context.fillStyle = outerGrad;
+      roundRect(context, 0, 0, WORLD_SIZE, WORLD_SIZE, 24);
+      context.fill();
+      context.shadowColor = "transparent";
+      drawWoodGrain(context, 0, 0, WORLD_SIZE, WORLD_SIZE, 0.42);
+
+      const inset = WORLD_MARGIN - 24;
+      const boardSize = GRID_SPAN + 48;
+      const boardGrad = context.createLinearGradient(inset, inset, inset + boardSize, inset + boardSize);
+      boardGrad.addColorStop(0, "#f7d99a");
+      boardGrad.addColorStop(0.28, "#e5b96f");
+      boardGrad.addColorStop(0.68, "#cf8840");
+      boardGrad.addColorStop(1, "#9f5a25");
+      context.fillStyle = boardGrad;
+      roundRect(context, inset, inset, boardSize, boardSize, 18);
+      context.fill();
+      drawWoodGrain(context, inset, inset, boardSize, boardSize, 0.38);
+
+      const glow = context.createRadialGradient(WORLD_SIZE * 0.45, WORLD_SIZE * 0.28, 40, WORLD_SIZE * 0.5, WORLD_SIZE * 0.5, WORLD_SIZE * 0.68);
+      glow.addColorStop(0, "rgba(255, 234, 168, 0.24)");
+      glow.addColorStop(0.48, "rgba(255, 207, 115, 0.06)");
+      glow.addColorStop(1, "rgba(77, 34, 10, 0.16)");
+      context.fillStyle = glow;
+      roundRect(context, inset, inset, boardSize, boardSize, 18);
+      context.fill();
+
+      context.strokeStyle = "rgba(255, 232, 176, 0.24)";
+      context.lineWidth = 2.6;
+      roundRect(context, inset + 7, inset + 7, boardSize - 14, boardSize - 14, 12);
+      context.stroke();
+
+      context.strokeStyle = "rgba(50, 27, 9, 0.72)";
+      context.lineWidth = 3.2;
+      roundRect(context, inset + 3, inset + 3, boardSize - 6, boardSize - 6, 14);
+      context.stroke();
+
+      context.strokeStyle = "rgba(22, 12, 4, 0.94)";
+      context.lineWidth = 1.72;
+      context.beginPath();
+      for (let i = 0; i < BOARD_SIZE; i += 1) {
+        const p = WORLD_MARGIN + i * WORLD_CELL;
+        context.moveTo(WORLD_MARGIN, p);
+        context.lineTo(WORLD_MARGIN + GRID_SPAN, p);
+        context.moveTo(p, WORLD_MARGIN);
+        context.lineTo(p, WORLD_MARGIN + GRID_SPAN);
+      }
+      context.stroke();
+
+      context.strokeStyle = "rgba(8, 4, 2, 0.98)";
+      context.lineWidth = 2.72;
+      context.beginPath();
+      for (let i = 0; i < BOARD_SIZE; i += 1) {
+        const centerIndex = Math.floor((BOARD_SIZE - 1) / 2);
+        if (i !== 0 && i !== BOARD_SIZE - 1 && i !== centerIndex && (i + 1) % 5 !== 0) continue;
+        const p = WORLD_MARGIN + i * WORLD_CELL;
+        context.moveTo(WORLD_MARGIN, p);
+        context.lineTo(WORLD_MARGIN + GRID_SPAN, p);
+        context.moveTo(p, WORLD_MARGIN);
+        context.lineTo(p, WORLD_MARGIN + GRID_SPAN);
+      }
+      context.stroke();
+
+      drawStarPoints(context);
+      drawBoardLabels(context);
+    }
+
+    function drawWoodGrain(context, x, y, width, height, strength) {
+      context.save();
+      context.beginPath();
+      roundRect(context, x, y, width, height, 18);
+      context.clip();
+      for (let i = 0; i < 118; i += 1) {
+        const yy = y + 8 + ((i * 37) % Math.max(1, height - 16));
+        const wobble = Math.sin(i * 1.7) * 18;
+        context.strokeStyle = `rgba(70, 32, 9, ${0.05 * strength})`;
+        context.lineWidth = 0.75 + (i % 4) * 0.42;
+        context.beginPath();
+        context.moveTo(x - 12, yy);
+        context.bezierCurveTo(x + width * 0.24, yy + wobble, x + width * 0.66, yy - wobble * 0.7, x + width + 12, yy + Math.sin(i) * 9);
+        context.stroke();
+      }
+      for (let i = 0; i < 54; i += 1) {
+        const xx = x + 10 + ((i * 53) % Math.max(1, width - 20));
+        const alpha = (i % 2 ? 0.026 : 0.018) * strength;
+        context.strokeStyle = `rgba(255, 226, 160, ${alpha})`;
+        context.lineWidth = 0.8;
+        context.beginPath();
+        context.moveTo(xx, y + 8);
+        context.bezierCurveTo(xx + Math.sin(i) * 8, y + height * 0.28, xx - Math.cos(i * 0.7) * 10, y + height * 0.74, xx + Math.sin(i * 1.3) * 5, y + height - 8);
+        context.stroke();
+      }
+      for (let i = 0; i < 7; i += 1) {
+        const kx = x + width * (0.18 + ((i * 0.19) % 0.68));
+        const ky = y + height * (0.16 + ((i * 0.23) % 0.7));
+        const rg = context.createRadialGradient(kx, ky, 2, kx, ky, 36 + i * 4);
+        rg.addColorStop(0, `rgba(88, 39, 10, ${0.15 * strength})`);
+        rg.addColorStop(0.42, `rgba(139, 75, 24, ${0.06 * strength})`);
+        rg.addColorStop(1, "rgba(96, 47, 13, 0)");
+        context.fillStyle = rg;
+        context.beginPath();
+        context.ellipse(kx, ky, 42, 16, Math.sin(i) * 0.9, 0, Math.PI * 2);
+        context.fill();
+      }
+      context.restore();
+    }
+
+    function drawStarPoints(context) {
+      const edge = BOARD_SIZE >= 19 ? 4 : 3;
+      const center = Math.floor((BOARD_SIZE - 1) / 2);
+      const points = [edge, center, BOARD_SIZE - 1 - edge];
+      for (const x of points) {
+        for (const y of points) {
+          const p = boardToWorld(x, y);
+          context.fillStyle = "rgba(48, 28, 10, 0.3)";
+          context.beginPath();
+          context.arc(p.x, p.y, 8.4, 0, Math.PI * 2);
+          context.fill();
+          context.fillStyle = "rgba(24, 14, 5, 0.95)";
+          context.beginPath();
+          context.arc(p.x, p.y, 4.75, 0, Math.PI * 2);
+          context.fill();
+        }
+      }
+    }
+
+    function fileLabel(index) {
+      let n = index;
+      let label = "";
+      while (n >= 0) {
+        label = String.fromCharCode(65 + (n % 26)) + label;
+        n = Math.floor(n / 26) - 1;
+      }
+      return label;
+    }
+
+    function drawBoardLabels(context) {
+      context.save();
+      context.fillStyle = "rgba(35, 19, 7, 0.82)";
+      context.font = "800 13.4px ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif";
+      context.textAlign = "center";
+      context.textBaseline = "middle";
+      for (let i = 0; i < BOARD_SIZE; i += 1) {
+        const centerIndex = Math.floor((BOARD_SIZE - 1) / 2);
+        if (i !== 0 && i !== BOARD_SIZE - 1 && i !== centerIndex && (i + 1) % 5 !== 0) continue;
+        const p = WORLD_MARGIN + i * WORLD_CELL;
+        context.fillText(fileLabel(i), p, WORLD_MARGIN - 18);
+        context.fillText(String(i + 1), WORLD_MARGIN - 18, p);
+      }
+      context.restore();
+    }
+
+    function drawPieces() {
+      for (const [x, y, color] of history) {
+        const p = boardToWorld(x, y);
+        const r = WORLD_CELL * 0.45;
+        ctx.drawImage(getStoneSprite(color), p.x - r * 1.25, p.y - r * 1.25, r * 2.5, r * 2.5);
+      }
+      drawMoveNumbers(history);
+    }
+
+    function getStoneSprite(color) {
+      const key = color + ":" + STONE_SPRITE_VERSION;
+      const cached = stoneSprites.get(key);
+      if (cached) return cached;
+      const size = 192;
+      const sprite = document.createElement("canvas");
+      sprite.width = size;
+      sprite.height = size;
+      const sctx = sprite.getContext("2d");
+      sctx.imageSmoothingEnabled = true;
+      sctx.imageSmoothingQuality = "high";
+      const c = size / 2;
+      const r = 77;
+      sctx.fillStyle = "rgba(18, 9, 4, 0.42)";
+      sctx.beginPath();
+      sctx.ellipse(c + 10, c + 14, r * 1.02, r * 0.82, 0.16, 0, Math.PI * 2);
+      sctx.fill();
+      const g = sctx.createRadialGradient(c - 22, c - 24, 5, c, c, r);
+      if (color === BLACK) {
+        g.addColorStop(0, "#f8fbff");
+        g.addColorStop(0.12, "#7e8794");
+        g.addColorStop(0.38, "#161d27");
+        g.addColorStop(0.76, "#05070b");
+        g.addColorStop(1, "#000000");
+      } else {
+        g.addColorStop(0, "#ffffff");
+        g.addColorStop(0.2, "#fffdf7");
+        g.addColorStop(0.6, "#eee5d4");
+        g.addColorStop(0.88, "#c9b48c");
+        g.addColorStop(1, "#847258");
+      }
+      sctx.fillStyle = g;
+      sctx.beginPath();
+      sctx.arc(c, c, r, 0, Math.PI * 2);
+      sctx.fill();
+      sctx.strokeStyle = color === BLACK ? "rgba(255,255,255,0.35)" : "rgba(62,43,22,0.64)";
+      sctx.lineWidth = 8.5;
+      sctx.beginPath();
+      sctx.arc(c, c, r - 1, 0, Math.PI * 2);
+      sctx.stroke();
+      sctx.strokeStyle = color === BLACK ? "rgba(0,0,0,0.92)" : "rgba(255,255,255,0.92)";
+      sctx.lineWidth = 4.4;
+      sctx.beginPath();
+      sctx.arc(c, c, r + 1, 0, Math.PI * 2);
+      sctx.stroke();
+      const shine = sctx.createRadialGradient(c - 24, c - 26, 1, c - 24, c - 26, 34);
+      shine.addColorStop(0, color === BLACK ? "rgba(255,255,255,0.42)" : "rgba(255,255,255,0.9)");
+      shine.addColorStop(1, "rgba(255,255,255,0)");
+      sctx.fillStyle = shine;
+      sctx.beginPath();
+      sctx.arc(c - 24, c - 26, 34, 0, Math.PI * 2);
+      sctx.fill();
+      sctx.strokeStyle = color === BLACK ? "rgba(255,255,255,0.08)" : "rgba(94,70,36,0.12)";
+      sctx.lineWidth = 1.2;
+      for (let i = 0; i < 4; i += 1) {
+        sctx.beginPath();
+        sctx.arc(c, c, r - 12 - i * 8, Math.PI * (0.04 + i * 0.06), Math.PI * (1.55 + i * 0.03));
+        sctx.stroke();
+      }
+      stoneSprites.set(key, sprite);
+      return sprite;
+    }
+
+    function drawMoveNumbers(shown) {
+      if (transform.scale < 0.42) return;
+      const start = Math.max(0, shown.length - 12);
+      ctx.save();
+      ctx.textAlign = "center";
+      ctx.textBaseline = "middle";
+      ctx.font = "850 13.2px ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif";
+      for (let i = start; i < shown.length; i += 1) {
+        const [x, y, color] = shown[i];
+        const p = boardToWorld(x, y);
+        ctx.lineWidth = 4.8;
+        ctx.strokeStyle = color === BLACK ? "rgba(0,0,0,0.86)" : "rgba(255,255,255,0.92)";
+        ctx.strokeText(String(i + 1), p.x, p.y + 0.4);
+        ctx.fillStyle = color === BLACK ? "rgba(255,255,255,0.92)" : "rgba(18,14,10,0.84)";
+        ctx.fillText(String(i + 1), p.x, p.y + 0.4);
+      }
+      ctx.restore();
+    }
+
+    function drawTapPreview() {
+      const candidate = lastTapCandidate || hoverCandidate;
+      if (!candidate || thinking || winner || (drag && drag.moved)) return;
+      if (!isValid(candidate.x, candidate.y)) return;
+      const p = boardToWorld(candidate.x, candidate.y);
+      const r = WORLD_CELL * 0.46;
+      ctx.save();
+      ctx.fillStyle = "rgba(255, 238, 182, 0.16)";
+      ctx.strokeStyle = "rgba(67, 31, 11, 0.74)";
+      ctx.lineWidth = 4.4;
+      ctx.beginPath();
+      ctx.arc(p.x, p.y, r, 0, Math.PI * 2);
+      ctx.stroke();
+      ctx.strokeStyle = "rgba(198, 103, 38, 0.78)";
+      ctx.lineWidth = 2.4;
+      ctx.beginPath();
+      ctx.arc(p.x, p.y, r, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.stroke();
+      drawHoverGuide(p.x, p.y);
+      ctx.restore();
+    }
+
+    function drawHoverGuide(x, y) {
+      ctx.save();
+      ctx.strokeStyle = "rgba(85, 39, 17, 0.44)";
+      ctx.lineWidth = 1.4;
+      ctx.setLineDash([4, 6]);
+      ctx.beginPath();
+      ctx.moveTo(x - WORLD_CELL * 0.72, y);
+      ctx.lineTo(x + WORLD_CELL * 0.72, y);
+      ctx.moveTo(x, y - WORLD_CELL * 0.72);
+      ctx.lineTo(x, y + WORLD_CELL * 0.72);
+      ctx.stroke();
+      ctx.restore();
+    }
+
+    function drawWinLine() {
+      if (!winLine || winLine.length < 5) return;
+      const first = boardToWorld(winLine[0][0], winLine[0][1]);
+      const last = boardToWorld(winLine[winLine.length - 1][0], winLine[winLine.length - 1][1]);
+      ctx.save();
+      ctx.lineCap = "round";
+      ctx.lineJoin = "round";
+      ctx.shadowColor = "rgba(255, 216, 91, 0.62)";
+      ctx.shadowBlur = 18;
+      ctx.strokeStyle = "rgba(255, 210, 75, 0.52)";
+      ctx.lineWidth = WORLD_CELL * 0.34;
+      ctx.beginPath();
+      ctx.moveTo(first.x, first.y);
+      ctx.lineTo(last.x, last.y);
+      ctx.stroke();
+      ctx.shadowBlur = 0;
+      ctx.strokeStyle = "rgba(255, 247, 196, 0.92)";
+      ctx.lineWidth = Math.max(2.8, 2.2 / Math.max(0.1, transform.scale));
+      ctx.beginPath();
+      ctx.moveTo(first.x, first.y);
+      ctx.lineTo(last.x, last.y);
+      ctx.stroke();
+      for (const [x, y] of winLine) {
+        const p = boardToWorld(x, y);
+        const halo = ctx.createRadialGradient(p.x, p.y, WORLD_CELL * 0.24, p.x, p.y, WORLD_CELL * 0.72);
+        halo.addColorStop(0, "rgba(255, 246, 190, 0.42)");
+        halo.addColorStop(1, "rgba(255, 199, 58, 0)");
+        ctx.fillStyle = halo;
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, WORLD_CELL * 0.72, 0, Math.PI * 2);
+        ctx.fill();
+      }
+      ctx.restore();
+    }
+
+    function drawLastMarker() {
+      const last = history[history.length - 1];
+      if (!last) return;
+      const p = boardToWorld(last[0], last[1]);
+      ctx.save();
+      const markerLine = Math.max(3, 2.8 / Math.max(0.1, transform.scale));
+      const r = WORLD_CELL * 0.51;
+      const tick = WORLD_CELL * 0.19;
+      const drawMarkerPath = () => {
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, r, 0, Math.PI * 2);
+        for (const sx of [-1, 1]) {
+          for (const sy of [-1, 1]) {
+            const x = p.x + sx * r * 0.74;
+            const y = p.y + sy * r * 0.74;
+            ctx.moveTo(x - sx * tick, y);
+            ctx.lineTo(x, y);
+            ctx.lineTo(x, y - sy * tick);
+          }
+        }
+      };
+      ctx.strokeStyle = "rgba(44, 23, 8, 0.9)";
+      ctx.lineWidth = markerLine + Math.max(2.2, 1.7 / Math.max(0.1, transform.scale));
+      drawMarkerPath();
+      ctx.stroke();
+      ctx.strokeStyle = "rgba(255, 224, 94, 1)";
+      ctx.lineWidth = markerLine;
+      drawMarkerPath();
+      ctx.stroke();
+      ctx.fillStyle = "rgba(255, 224, 94, 0.95)";
+      ctx.strokeStyle = "rgba(44, 23, 8, 0.88)";
+      ctx.lineWidth = Math.max(1.8, 1.4 / Math.max(0.1, transform.scale));
+      ctx.beginPath();
+      ctx.arc(p.x, p.y, WORLD_CELL * 0.16, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.stroke();
+      ctx.restore();
+    }
+
+    function roundRect(context, x, y, width, height, radius) {
+      context.beginPath();
+      context.moveTo(x + radius, y);
+      context.arcTo(x + width, y, x + width, y + height, radius);
+      context.arcTo(x + width, y + height, x, y + height, radius);
+      context.arcTo(x, y + height, x, y, radius);
+      context.arcTo(x, y, x + width, y, radius);
+      context.closePath();
+    }
+
+    function placeMove(x, y, color) {
+      if (!isValid(x, y)) return false;
+      grid[y][x] = color;
+      history.push([x, y, color]);
+      boardHash = (boardHash ^ hashStone(x, y, color)) >>> 0;
+      return true;
+    }
+
+    function undoMove() {
+      const mv = history.pop();
+      if (!mv) return;
+      grid[mv[1]][mv[0]] = EMPTY;
+      boardHash = (boardHash ^ hashStone(mv[0], mv[1], mv[2])) >>> 0;
+    }
+
+    function checkWin(x, y, color) {
+      return getWinLine(x, y, color).length >= 5;
+    }
+
+    function getWinLine(x, y, color) {
+      for (const [dx, dy] of [[1, 0], [0, 1], [1, 1], [1, -1]]) {
+        const line = [[x, y]];
+        let nx = x + dx;
+        let ny = y + dy;
+        while (nx >= 0 && ny >= 0 && nx < BOARD_SIZE && ny < BOARD_SIZE && grid[ny][nx] === color) {
+          line.push([nx, ny]);
+          nx += dx;
+          ny += dy;
+        }
+        nx = x - dx;
+        ny = y - dy;
+        while (nx >= 0 && ny >= 0 && nx < BOARD_SIZE && ny < BOARD_SIZE && grid[ny][nx] === color) {
+          line.unshift([nx, ny]);
+          nx -= dx;
+          ny -= dy;
+        }
+        if (line.length >= 5) {
+          const placedIndex = line.findIndex(item => item[0] === x && item[1] === y);
+          const start = Math.max(0, Math.min(placedIndex - 2, line.length - 5));
+          return line.slice(start, start + 5);
+        }
+      }
+      return [];
+    }
+
+    function countDir(x, y, dx, dy, color) {
+      let c = 0;
+      let nx = x + dx;
+      let ny = y + dy;
+      while (nx >= 0 && ny >= 0 && nx < BOARD_SIZE && ny < BOARD_SIZE && grid[ny][nx] === color) {
+        c += 1;
+        nx += dx;
+        ny += dy;
+      }
+      return c;
+    }
+
+    function countLineFast(x, y, dx, dy, color) {
+      let count = 1;
+      let open = 0;
+      let nx = x + dx;
+      let ny = y + dy;
+      while (nx >= 0 && ny >= 0 && nx < BOARD_SIZE && ny < BOARD_SIZE && grid[ny][nx] === color) {
+        count += 1;
+        nx += dx;
+        ny += dy;
+      }
+      if (nx >= 0 && ny >= 0 && nx < BOARD_SIZE && ny < BOARD_SIZE && grid[ny][nx] === EMPTY) open += 1;
+      nx = x - dx;
+      ny = y - dy;
+      while (nx >= 0 && ny >= 0 && nx < BOARD_SIZE && ny < BOARD_SIZE && grid[ny][nx] === color) {
+        count += 1;
+        nx -= dx;
+        ny -= dy;
+      }
+      if (nx >= 0 && ny >= 0 && nx < BOARD_SIZE && ny < BOARD_SIZE && grid[ny][nx] === EMPTY) open += 1;
+      return [Math.min(count, 5), open];
+    }
+
+    function directionHits(x, y, dx, dy, color) {
+      const radius = 5;
+      const center = radius;
+      let line = "";
+      for (let step = -radius; step <= radius; step += 1) {
+        const nx = x + dx * step;
+        const ny = y + dy * step;
+        if (nx < 0 || ny < 0 || nx >= BOARD_SIZE || ny >= BOARD_SIZE) {
+          line += "2";
+        } else {
+          const v = grid[ny][nx];
+          line += v === EMPTY ? "0" : v === color ? "1" : "2";
+        }
+      }
+      const hits = { five: 0, live4: 0, rush4: 0, live3: 0, sleep3: 0 };
+      for (const [pat, kind] of PATTERNS) {
+        const len = pat.length;
+        for (let start = 0; start + len <= line.length; start += 1) {
+          if (start <= center && center < start + len && line.slice(start, start + len) === pat) {
+            hits[kind] = 1;
+            break;
+          }
+        }
+        if (hits.five) break;
+      }
+      return hits;
+    }
+
+    function threatProfile(x, y, color) {
+      if (!isValid(x, y)) return { rank: 0, five: 0, live4: 0, rush4: 0, live3: 0, sleep3: 0 };
+      grid[y][x] = color;
+      let five = 0, live4 = 0, rush4 = 0, live3 = 0, sleep3 = 0;
+      for (const [dx, dy] of [[1, 0], [0, 1], [1, 1], [1, -1]]) {
+        const hits = directionHits(x, y, dx, dy, color);
+        five += hits.five;
+        live4 += hits.live4;
+        rush4 += hits.rush4;
+        live3 += hits.live3;
+        sleep3 += hits.sleep3;
+      }
+      grid[y][x] = EMPTY;
+      let rank = 0;
+      if (five) rank = RANK.FIVE;
+      else if (live4) rank = RANK.LIVE4;
+      else if (rush4 >= 2) rank = RANK.DOUBLE4;
+      else if (rush4 >= 1 && live3 >= 1) rank = RANK.FOUR3;
+      else if (live3 >= 2) rank = RANK.DOUBLE3;
+      else if (rush4 >= 1) rank = RANK.RUSH4;
+      else if (live3 >= 1) rank = RANK.LIVE3;
+      return { rank, five, live4, rush4, live3, sleep3 };
+    }
+
+    function profileScore(profile) {
+      const rank = profile ? profile.rank : 0;
+      if (rank >= RANK.FIVE) return WIN;
+      if (rank >= RANK.LIVE4) return 1000000;
+      if (rank >= RANK.DOUBLE4) return 900000;
+      if (rank >= RANK.FOUR3) return 760000;
+      if (rank >= RANK.DOUBLE3) return 260000;
+      if (rank >= RANK.RUSH4) return 85000;
+      if (rank >= RANK.LIVE3) return 18000;
+      return 0;
+    }
+
+    function quickScore(x, y, color) {
+      if (!isValid(x, y)) return 0;
+      grid[y][x] = color;
+      let total = 0;
+      for (const [dx, dy] of [[1, 0], [0, 1], [1, 1], [1, -1]]) {
+        const [c, o] = countLineFast(x, y, dx, dy, color);
+        if (c >= 5) total += 1000000;
+        else if (c === 4 && o === 2) total += 120000;
+        else if (c === 4 && o === 1) total += 18000;
+        else if (c === 3 && o === 2) total += 7000;
+        else if (c === 3 && o === 1) total += 900;
+        else if (c === 2 && o === 2) total += 260;
+        else if (c === 2 && o === 1) total += 70;
+      }
+      grid[y][x] = EMPTY;
+      return total;
+    }
+
+    function neighbors() {
+      if (!history.length) return [[Math.floor(BOARD_SIZE / 2), Math.floor(BOARD_SIZE / 2)]];
+      const set = new Set();
+      for (const [x, y] of history) {
+        for (let dy = -2; dy <= 2; dy += 1) {
+          for (let dx = -2; dx <= 2; dx += 1) {
+            if (!dx && !dy) continue;
+            const nx = x + dx;
+            const ny = y + dy;
+            if (isValid(nx, ny)) set.add(nx + "," + ny);
+          }
+        }
+      }
+      return Array.from(set, s => s.split(",").map(Number));
+    }
+
+    function moveScore(x, y, color) {
+      const opp = other(color);
+      const selfProf = threatProfile(x, y, color);
+      const oppProf = threatProfile(x, y, opp);
+      const center = Math.floor(BOARD_SIZE / 2);
+      const centerPull = BOARD_SIZE - Math.abs(x - center) - Math.abs(y - center);
+      const last = history[history.length - 1];
+      const lastPull = last ? Math.max(0, 10 - Math.abs(x - last[0]) - Math.abs(y - last[1])) : 0;
+      return selfProf.rank * 2200000 + oppProf.rank * 2350000 +
+        quickScore(x, y, color) * 4.5 + quickScore(x, y, opp) * 3.8 +
+        centerPull * 28 + lastPull * 48;
+    }
+
+    function candidates(color, width) {
+      const all = neighbors();
+      const scored = all.map(([x, y]) => [moveScore(x, y, color), x, y])
+        .sort((a, b) => b[0] - a[0]);
+      const protectedMoves = [];
+      const opp = other(color);
+      for (const [, x, y] of scored) {
+        if (threatProfile(x, y, color).rank >= RANK.LIVE3 || threatProfile(x, y, opp).rank >= RANK.LIVE3) {
+          protectedMoves.push([x, y]);
+        }
+      }
+      const out = [];
+      const seen = new Set();
+      for (const mv of protectedMoves.concat(scored.slice(0, width).map(item => [item[1], item[2]]))) {
+        const key = mv[0] + "," + mv[1];
+        if (!seen.has(key)) {
+          seen.add(key);
+          out.push(mv);
+        }
+        if (out.length >= width + 10) break;
+      }
+      return out;
+    }
+
+    function immediateWin(color) {
+      const all = neighbors().sort((a, b) => quickScore(b[0], b[1], color) - quickScore(a[0], a[1], color));
+      for (const [x, y] of all) {
+        placeMove(x, y, color);
+        const win = checkWin(x, y, color);
+        undoMove();
+        if (win) return [x, y];
+      }
+      return null;
+    }
+
+    function bestForcing(color, minRank) {
+      let best = null;
+      let bestProfile = null;
+      let bestScore = -INF;
+      const opp = other(color);
+      for (const [x, y] of neighbors()) {
+        const prof = threatProfile(x, y, color);
+        if (prof.rank < minRank) continue;
+        const score = prof.rank * 1000000 + quickScore(x, y, color) * 4 + quickScore(x, y, opp) * 2;
+        if (score > bestScore) {
+          bestScore = score;
+          best = [x, y];
+          bestProfile = prof;
+        }
+      }
+      return [best, bestProfile];
+    }
+
+    function candidateSafety(move, color) {
+      const opp = other(color);
+      placeMove(move[0], move[1], color);
+      let penalty = 0;
+      if (immediateWin(opp)) penalty += WIN * 1.2;
+      const [, oppForce] = bestForcing(opp, RANK.FOUR3);
+      const [, oppPressure] = bestForcing(opp, RANK.DOUBLE3);
+      penalty += profileScore(oppForce) * 1.25;
+      penalty += profileScore(oppPressure) * 0.9;
+      undoMove();
+      return penalty;
+    }
+
+    function evaluate(color) {
+      const opp = other(color);
+      let self = 0;
+      let enemy = 0;
+      const all = neighbors();
+      for (const [x, y] of all) {
+        const selfProf = threatProfile(x, y, color);
+        const enemyProf = threatProfile(x, y, opp);
+        self += profileScore(selfProf) * 0.56 + quickScore(x, y, color) * 1.45;
+        enemy += profileScore(enemyProf) * 0.82 + quickScore(x, y, opp) * 2.05;
+        if (enemyProf.rank >= RANK.FOUR3) enemy += 520000;
+        if (selfProf.rank >= RANK.FOUR3) self += 360000;
+      }
+      return self - enemy;
+    }
+
+    function terminalScore(colorToMove) {
+      const last = history[history.length - 1];
+      if (!last) return null;
+      if (!checkWin(last[0], last[1], last[2])) return null;
+      return last[2] === colorToMove ? WIN : -WIN;
+    }
+
+    function negamax(depth, alpha, beta, color, deadline, width, reduceAfter) {
+      aiStats.nodes += 1;
+      if ((aiStats.nodes & 127) === 0 && performance.now() > deadline) throw new Error("timeout");
+      const term = terminalScore(color);
+      if (term !== null) return term;
+      if (depth <= 0) return evaluate(color);
+      const key = color + ":" + depth + ":" + boardHash;
+      const cached = tt.get(key);
+      if (cached !== undefined) {
+        aiStats.cacheHits += 1;
+        return cached;
+      }
+
+      const win = immediateWin(color);
+      if (win) return WIN - (10 - depth);
+
+      const moves = candidates(color, Math.max(7, width - (depth >= 3 ? 3 : 0)));
+      let best = -INF;
+      const opp = other(color);
+      let searched = 0;
+      let cut = false;
+      for (const mv of moves) {
+        const rank = Math.max(threatProfile(mv[0], mv[1], color).rank, threatProfile(mv[0], mv[1], opp).rank);
+        const reduction = searched >= reduceAfter && depth >= 3 && rank < RANK.LIVE3 ? 1 : 0;
+        placeMove(mv[0], mv[1], color);
+        const val = -negamax(depth - 1 - reduction, -beta, -alpha, opp, deadline, width, reduceAfter);
+        undoMove();
+        searched += 1;
+        if (val > best) best = val;
+        if (best > alpha) alpha = best;
+        if (alpha >= beta) {
+          cut = true;
+          break;
+        }
+      }
+      if (!cut) {
+        if (tt.size > 30000) tt.clear();
+        tt.set(key, best);
+      }
+      return best;
+    }
+
+    function openingMove(color) {
+      if (history.length !== 1) return null;
+      const [x, y] = history[0];
+      const offsets = [[1, 1], [1, 0], [0, 1], [-1, 1], [1, -1], [-1, 0], [0, -1], [-1, -1], [2, 0], [0, 2]];
+      for (const [dx, dy] of offsets) {
+        const nx = x + dx;
+        const ny = y + dy;
+        if (isValid(nx, ny)) return [nx, ny];
+      }
+      return null;
+    }
+
+    function localAiMove(color) {
+      const difficulty = difficultySelect.value;
+      const level = LEVELS[difficulty] || LEVELS.legend;
+      const start = performance.now();
+      const deadline = start + level.time;
+      tt = new Map();
+      aiStats = { nodes: 0, cacheHits: 0, depth: 0, gate: "", elapsed: 0, difficulty: level.label };
+      const opp = other(color);
+
+      if (!history.length) return [Math.floor(BOARD_SIZE / 2), Math.floor(BOARD_SIZE / 2)];
+
+      const win = immediateWin(color);
+      if (win) {
+        aiStats.gate = "win";
+        aiStats.elapsed = performance.now() - start;
+        return win;
+      }
+      const block = immediateWin(opp);
+      if (block) {
+        aiStats.gate = "block";
+        aiStats.elapsed = performance.now() - start;
+        return block;
+      }
+
+      const book = openingMove(color);
+      if (book) {
+        aiStats.gate = "book";
+        aiStats.elapsed = performance.now() - start;
+        return book;
+      }
+
+      const [ownForce, ownForceProfile] = bestForcing(color, RANK.FOUR3);
+      const [oppForce, oppForceProfile] = bestForcing(opp, RANK.FOUR3);
+      if (ownForce && (!oppForceProfile || ownForceProfile.rank >= oppForceProfile.rank || ownForceProfile.rank >= RANK.LIVE4)) {
+        aiStats.gate = "force";
+        aiStats.elapsed = performance.now() - start;
+        return ownForce;
+      }
+      if (oppForce) {
+        aiStats.gate = "defense";
+        aiStats.elapsed = performance.now() - start;
+        return oppForce;
+      }
+      if (ownForce) {
+        aiStats.gate = "force";
+        aiStats.elapsed = performance.now() - start;
+        return ownForce;
+      }
+
+      let [ownPressure] = bestForcing(color, RANK.DOUBLE3);
+      let [oppPressure] = bestForcing(opp, RANK.DOUBLE3);
+      if (ownPressure && !oppPressure) {
+        aiStats.gate = "pressure";
+        aiStats.elapsed = performance.now() - start;
+        return ownPressure;
+      }
+      if (oppPressure) {
+        aiStats.gate = "anti-pressure";
+        aiStats.elapsed = performance.now() - start;
+        return oppPressure;
+      }
+
+      let bestMove = candidates(color, level.width)[0];
+      let bestScore = -INF;
+      for (let depth = 1; depth <= level.depth; depth += 1) {
+        try {
+          const moves = candidates(color, level.width + (depth >= 4 ? 1 : 0));
+          let depthBest = bestMove;
+          let depthScore = -INF;
+          let alpha = -INF;
+          const beta = INF;
+          for (const mv of moves) {
+            placeMove(mv[0], mv[1], color);
+            const score = -negamax(depth - 1, -beta, -alpha, opp, deadline, level.width, level.reduceAfter);
+            undoMove();
+            const safety = candidateSafety(mv, color);
+            const finalScore = score - safety * (difficulty === "legend" ? 1.1 : 0.9);
+            if (finalScore > depthScore) {
+              depthScore = finalScore;
+              depthBest = mv;
+            }
+            alpha = Math.max(alpha, score);
+            if (performance.now() > deadline) throw new Error("timeout");
+          }
+          bestMove = depthBest;
+          bestScore = depthScore;
+          aiStats.depth = depth;
+        } catch (err) {
+          break;
+        }
+      }
+
+      const safety = bestMove ? candidateSafety(bestMove, color) : 0;
+      if (safety >= 85000) {
+        const safe = candidates(color, level.width + 6)
+          .map(mv => [candidateSafety(mv, color), -moveScore(mv[0], mv[1], color), mv])
+          .sort((a, b) => a[0] - b[0] || a[1] - b[1])[0];
+        if (safe && safe[2]) {
+          bestMove = safe[2];
+          aiStats.gate = "safe";
+        }
+      }
+      aiStats.elapsed = performance.now() - start;
+      aiStats.score = Math.round(bestScore);
+      return bestMove;
+    }
+
+    function createAiWorker() {
+      if (!("Worker" in window) || location.protocol === "file:") return null;
+      try {
+        return new Worker("./ai_worker.js");
+      } catch (err) {
+        return null;
+      }
+    }
+
+    function emergencyMove(color) {
+      const win = immediateWin(color);
+      if (win) return win;
+      const block = immediateWin(other(color));
+      if (block) return block;
+      const mv = candidates(color, 6)[0];
+      return mv || null;
+    }
+
+    function requestAiMove(color) {
+      if (!aiWorker) {
+        const move = localAiMove(color);
+        return Promise.resolve({ ok: true, move, stats: { ...aiStats, source: "main" } });
+      }
+
+      const id = ++aiRequestSeq;
+      const snapshot = history.map(item => item.slice());
+      const difficulty = difficultySelect.value;
+
+      return new Promise(resolve => {
+        const cleanup = () => {
+          clearTimeout(timer);
+          aiWorker.removeEventListener("message", onMessage);
+          aiWorker.removeEventListener("error", onError);
+          if (activeAiRequest === id) activeAiRequest = null;
+        };
+
+        const finish = result => {
+          cleanup();
+          resolve(result);
+        };
+
+        const onMessage = event => {
+          if (!event.data || event.data.id !== id) return;
+          finish(event.data);
+        };
+
+        const onError = () => {
+          aiWorker = null;
+          const move = emergencyMove(color);
+          finish({
+            ok: true,
+            move,
+            stats: { nodes: 0, depth: 0, elapsed: 0, gate: "fallback", source: "main" }
+          });
+        };
+
+        const timer = setTimeout(() => {
+          const move = emergencyMove(color);
+          finish({
+            ok: true,
+            move,
+            stats: { nodes: 0, depth: 0, elapsed: 0, gate: "timeout", source: "main" }
+          });
+        }, 4500);
+
+        activeAiRequest = id;
+        aiWorker.addEventListener("message", onMessage);
+        aiWorker.addEventListener("error", onError);
+        aiWorker.postMessage({ id, snapshot, color, difficulty });
+      });
+    }
+
+    async function handlePlayerMove(x, y) {
+      if (thinking || winner || !isValid(x, y)) return;
+      placeMove(x, y, BLACK);
+      centerLast();
+      if (checkWin(x, y, BLACK)) {
+        winner = BLACK;
+        setStatus("黑棋胜");
+        setStats("对局结束");
+        showVictoryBanner(BLACK, x, y);
+        return;
+      }
+      thinking = true;
+      setStatus("AI 深算中");
+      setStats(aiWorker ? "后台搜索..." : "本机搜索...");
+      await new Promise(resolve => requestAnimationFrame(resolve));
+      const result = await requestAiMove(WHITE);
+      const mv = result && result.move;
+      aiStats = (result && result.stats) || aiStats;
+      if (mv && placeMove(mv[0], mv[1], WHITE)) {
+        if (checkWin(mv[0], mv[1], WHITE)) {
+          winner = WHITE;
+          setStatus("白棋胜");
+          showVictoryBanner(WHITE, mv[0], mv[1]);
+        } else {
+          setStatus("黑棋回合");
+        }
+      } else {
+        setStatus("黑棋回合");
+      }
+      thinking = false;
+      setStats(`${aiStats.difficulty || ""} D${aiStats.depth || 0} N${aiStats.nodes || 0} ${(aiStats.elapsed / 1000).toFixed(2)}s ${aiStats.gate || ""}`);
+      centerLast();
+    }
+
+    function releaseCapturedPointer(event) {
+      if (!canvas.releasePointerCapture) return;
+      try {
+        canvas.releasePointerCapture(event.pointerId);
+      } catch (err) {}
+    }
+
+    function startPinchGesture() {
+      const points = Array.from(pointerMap.values());
+      if (points.length < 2) return false;
+      const [a, b] = points;
+      drag = {
+        mode: "pinch",
+        pinchDistance: Math.max(1, Math.hypot(a.x - b.x, a.y - b.y)),
+        scale: transform.scale,
+        x: transform.x,
+        y: transform.y
+      };
+      lastTapCandidate = null;
+      hoverCandidate = null;
+      requestDraw();
+      return true;
+    }
+
+    canvas.addEventListener("pointerdown", event => {
+      event.preventDefault();
+      setKeyboardInputMode(false);
+      focusBoard();
+      if (canvas.setPointerCapture) canvas.setPointerCapture(event.pointerId);
+      pointerMap.set(event.pointerId, { x: event.clientX, y: event.clientY });
+      if (pointerMap.size === 1) {
+        const tapCandidate = screenToBoard(event.clientX, event.clientY);
+        drag = { mode: "tap-pan", x: event.clientX, y: event.clientY, tx: transform.x, ty: transform.y, moved: false, tapCandidate, pointerType: event.pointerType };
+        lastTapCandidate = tapCandidate;
+        hoverCandidate = lastTapCandidate;
+        requestDraw();
+      } else {
+        startPinchGesture();
+      }
+    });
+
+    canvas.addEventListener("pointermove", event => {
+      event.preventDefault();
+      if (!pointerMap.has(event.pointerId)) {
+        if (event.pointerType !== "touch") {
+          hoverCandidate = screenToBoard(event.clientX, event.clientY);
+          requestDraw();
+        }
+        return;
+      }
+      pointerMap.set(event.pointerId, { x: event.clientX, y: event.clientY });
+      const points = Array.from(pointerMap.values());
+      if (points.length === 1 && drag && drag.mode !== "pinch") {
+        const dx = event.clientX - drag.x;
+        const dy = event.clientY - drag.y;
+        if (!drag.moved && Math.hypot(dx, dy) <= CLICK_DRAG_THRESHOLD) {
+          lastTapCandidate = screenToBoard(event.clientX, event.clientY);
+          hoverCandidate = lastTapCandidate;
+          requestDraw();
+          return;
+        }
+        if (!drag.moved) {
+          drag.moved = true;
+          lastTapCandidate = null;
+          hoverCandidate = null;
+        }
+        transform.x = drag.tx + dx;
+        transform.y = drag.ty + dy;
+        userViewAdjusted = true;
+        clampTransform();
+        requestDraw();
+      } else if (points.length >= 2) {
+        const [a, b] = points;
+        if (!drag || drag.mode !== "pinch" || !drag.pinchDistance) {
+          startPinchGesture();
+          return;
+        }
+        const dist = Math.hypot(a.x - b.x, a.y - b.y);
+        const rect = canvas.getBoundingClientRect();
+        const midX = (a.x + b.x) / 2 - rect.left;
+        const midY = (a.y + b.y) / 2 - rect.top;
+        transform.scale = drag.scale;
+        transform.x = drag.x;
+        transform.y = drag.y;
+        zoomAt(dist / Math.max(1, drag.pinchDistance), midX, midY);
+      }
+    });
+
+    canvas.addEventListener("pointerup", event => {
+      event.preventDefault();
+      const wasTap = drag && drag.mode !== "pinch" && !drag.moved && pointerMap.size === 1;
+      const releaseCandidate = screenToBoard(event.clientX, event.clientY);
+      const tapTarget = wasTap ? (releaseCandidate || lastTapCandidate || (drag.pointerType === "touch" ? drag.tapCandidate : null)) : null;
+      pointerMap.delete(event.pointerId);
+      releaseCapturedPointer(event);
+      if (wasTap && tapTarget) handlePlayerMove(tapTarget.x, tapTarget.y);
+      if (pointerMap.size === 0) {
+        drag = null;
+        lastTapCandidate = null;
+        hoverCandidate = event.pointerType !== "touch" ? screenToBoard(event.clientX, event.clientY) : null;
+        requestDraw();
+      }
+    });
+
+    canvas.addEventListener("pointercancel", event => {
+      event.preventDefault();
+      pointerMap.delete(event.pointerId);
+      releaseCapturedPointer(event);
+      if (pointerMap.size === 0) {
+        drag = null;
+        lastTapCandidate = null;
+        hoverCandidate = null;
+        requestDraw();
+      }
+    });
+
+    canvas.addEventListener("pointerleave", event => {
+      if (event.pointerType === "touch") return;
+      hoverCandidate = null;
+      requestDraw();
+    });
+
+    canvas.addEventListener("wheel", event => {
+      event.preventDefault();
+      const rect = canvas.getBoundingClientRect();
+      zoomAt(wheelZoomFactor(event.deltaY), event.clientX - rect.left, event.clientY - rect.top);
+      hoverCandidate = screenToBoard(event.clientX, event.clientY);
+    }, { passive: false });
+
+    canvas.addEventListener("contextmenu", event => {
+      event.preventDefault();
+      centerLast();
+    });
+
+    canvas.addEventListener("keydown", handleBoardKeydown);
+    document.addEventListener("keydown", handleGlobalKeydown, true);
+    document.addEventListener("pointerdown", () => setKeyboardInputMode(false), true);
+
+    newGameBtn.addEventListener("click", startNewGameCommand);
+    fitBtn.addEventListener("click", fitBoardCommand);
+    centerBtn.addEventListener("click", centerBoardCommand);
+    zoomInBtn.addEventListener("click", () => zoomAt(1.25, canvasSize().width / 2, canvasSize().height / 2));
+    zoomOutBtn.addEventListener("click", () => zoomAt(0.8, canvasSize().width / 2, canvasSize().height / 2));
+    undoBtn.addEventListener("click", undoPairCommand);
+    difficultySelect.addEventListener("change", () => setStats(`AI \u5f3a\u5ea6: ${difficultySelect.options[difficultySelect.selectedIndex].text}`));
+    if ("serviceWorker" in navigator && location.protocol !== "file:") {
+      window.addEventListener("load", () => {
+        navigator.serviceWorker.register("./sw.js").catch(() => {});
+      });
+    }
+
+    window.addEventListener("resize", resizeCanvas);
+
+    installDebugApi();
+    resizeCanvas();
+    resetState();
+  </script>
+</body>
+</html>
+
+

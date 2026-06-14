@@ -1,0 +1,48 @@
+{
+  "name": "\u4e94\u5b50\u68cb AI \u68cb\u9662",
+  "short_name": "AI \u68cb\u9662",
+  "description": "\u53ef\u79bb\u7ebf\u8fd0\u884c\u7684 iPhone \u4e94\u5b50\u68cb AI \u8bfe\u7a0b\u5c55\u793a\u4ea7\u54c1\u3002",
+  "lang": "zh-CN",
+  "start_url": "./index.html?v=50",
+  "scope": "./",
+  "display": "standalone",
+  "display_override": ["standalone", "fullscreen"],
+  "orientation": "portrait",
+  "categories": ["games", "education"],
+  "background_color": "#13241b",
+  "theme_color": "#13241b",
+  "shortcuts": [
+    {
+      "name": "\u5f00\u59cb\u5bf9\u5f08",
+      "short_name": "\u5bf9\u5f08",
+      "url": "./index.html?v=50&mode=play",
+      "icons": [{ "src": "./icons/icon-192.png", "sizes": "192x192", "type": "image/png" }]
+    },
+    {
+      "name": "\u8bfe\u7a0b\u8bad\u7ec3",
+      "short_name": "\u8bad\u7ec3",
+      "url": "./index.html?v=50&mode=train",
+      "icons": [{ "src": "./icons/icon-192.png", "sizes": "192x192", "type": "image/png" }]
+    }
+  ],
+  "icons": [
+    {
+      "src": "./icons/icon-180.png",
+      "sizes": "180x180",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "./icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "./icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    }
+  ]
+}
